@@ -13,7 +13,7 @@ This roadmap delivers a fully queryable SQL interface over the Open Images V7 va
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Infrastructure** - CDK stack provisions S3, Glue, Athena, and IAM resources
-- [ ] **Phase 2: Data Acquisition** - Shell scripts download all annotation data from GCS to S3
+- [x] **Phase 2: Data Acquisition** - Shell scripts download all annotation data from GCS to S3 (completed 2026-03-05)
 - [ ] **Phase 3: Iceberg Tables** - Athena DDL/CTAS creates and populates all Iceberg tables
 - [ ] **Phase 4: Views and Enrichment** - Convenience views and pre-computed mask metadata
 - [ ] **Phase 5: Validation and Query Surface** - Data quality checks, example queries, and schema docs
@@ -106,7 +106,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 0/2 | Planning complete | - |
-| 2. Data Acquisition | 0/2 | Planning complete | - |
+| 2. Data Acquisition | 2/2 | Complete   | 2026-03-05 |
 | 3. Iceberg Tables | 0/? | Not started | - |
 | 4. Views and Enrichment | 0/? | Not started | - |
 | 5. Validation and Query Surface | 0/? | Not started | - |
