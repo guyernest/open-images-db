@@ -19,16 +19,12 @@ describe('S3', () => {
         ServerSideEncryptionConfiguration: [
           {
             ServerSideEncryptionByDefault: {
-              SSEAlgorithm: 'aws:kms',
+              SSEAlgorithm: 'AES256',
             },
           },
         ],
       },
     });
-    // Note: the above SSEAlgorithm is intentionally wrong for RED phase;
-    // actual implementation uses AES256 for S3_MANAGED. But even so,
-    // the stub stack has no bucket at all, so this test will fail.
-    // We correct the assertion in the actual test below:
   });
 
   test('bucket has SSE-S3 encryption (AES256)', () => {
@@ -82,7 +78,13 @@ describe('Glue', () => {
     template.hasResourceProperties('AWS::Glue::Database', {
       DatabaseInput: {
         Name: 'open_images',
-        LocationUri: Match.stringLikeRegexp('warehouse/$'),
+        LocationUri: Match.objectLike({
+          'Fn::Join': Match.arrayWith([
+            Match.arrayWith([
+              Match.stringLikeRegexp('warehouse/'),
+            ]),
+          ]),
+        }),
       },
     });
   });
@@ -108,7 +110,13 @@ describe('Athena', () => {
     template.hasResourceProperties('AWS::Athena::WorkGroup', {
       WorkGroupConfiguration: {
         ResultConfiguration: {
-          OutputLocation: Match.stringLikeRegexp('athena-results/$'),
+          OutputLocation: Match.objectLike({
+            'Fn::Join': Match.arrayWith([
+              Match.arrayWith([
+                Match.stringLikeRegexp('athena-results/'),
+              ]),
+            ]),
+          }),
           EncryptionConfiguration: {
             EncryptionOption: 'SSE_S3',
           },
