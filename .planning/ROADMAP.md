@@ -30,11 +30,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Athena workgroup exists with per-query scan cost limits enforced
   4. `cdk destroy` removes all resources including bucket contents (no manual cleanup)
   5. IAM roles allow Athena to read/write S3 and access Glue catalog
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — CDK project init with TDD assertion tests + full stack implementation (S3, Glue, Athena, IAM)
+- [ ] 01-02-PLAN.md — Deploy stack to AWS and verify resources in console
 
 ### Phase 2: Data Acquisition
 **Goal**: All Open Images V7 validation annotation data is in S3 and ready for Athena to query
@@ -105,7 +105,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure | 0/? | Not started | - |
+| 1. Infrastructure | 0/2 | Planning complete | - |
 | 2. Data Acquisition | 0/? | Not started | - |
 | 3. Iceberg Tables | 0/? | Not started | - |
 | 4. Views and Enrichment | 0/? | Not started | - |
