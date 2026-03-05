@@ -32,10 +32,10 @@ download_masks() {
 
   mkdir -p "$zip_dir" "$masks_dir"
 
-  log_info "Downloading mask archives..."
+  log_info "Downloading $total mask archives..."
 
   for char in "${MASK_CHARS[@]}"; do
-    ((count++))
+    count=$((count + 1))
     local zip_file="$zip_dir/validation-masks-${char}.zip"
     local url="${MASK_BASE_URL}-${char}.zip"
 
@@ -43,20 +43,18 @@ download_masks() {
 
     # Try lowercase first; if 404, try uppercase
     if ! download_file "$url" "$zip_file" 2>/dev/null; then
-      local upper_char
-      upper_char=$(echo "$char" | tr '[:lower:]' '[:upper:]')
+      local upper_char="${char^^}"
       local upper_url="${MASK_BASE_URL}-${upper_char}.zip"
       log_warn "Lowercase failed, trying uppercase: validation-masks-${upper_char}.zip"
       download_file "$upper_url" "$zip_file"
     fi
 
     # Extract flat (junk paths) to get PNGs without directory nesting
-    log_info "Extracting validation-masks-${char}.zip..."
     unzip -o -j "$zip_file" -d "$masks_dir" >/dev/null
 
-    # Clean up zip file after successful extraction to save disk space
+    # Clean up zip file after extraction to save disk space
     rm -f "$zip_file"
-    log_info "Extracted and cleaned up validation-masks-${char}.zip"
+    log_info "Done: validation-masks-${char}.zip"
   done
 
   log_info "All $total mask archives downloaded and extracted"

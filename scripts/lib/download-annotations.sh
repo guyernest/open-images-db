@@ -20,32 +20,6 @@ readonly ANNOTATION_URLS=(
   "https://storage.googleapis.com/openimages/v6/oidv6-validation-annotations-vrd.csv"
 )
 
-# -----------------------------------------------------------------------------
-# Download all annotation CSVs and upload to S3
-# Args: $1 = temp directory, $2 = S3 bucket name
-# -----------------------------------------------------------------------------
-
 download_annotations() {
-  local temp_dir="$1"
-  local bucket="$2"
-  local dest_dir="$temp_dir/annotations"
-  local total=${#ANNOTATION_URLS[@]}
-  local count=0
-
-  mkdir -p "$dest_dir"
-
-  log_info "Downloading annotation CSVs..."
-
-  for url in "${ANNOTATION_URLS[@]}"; do
-    ((count++))
-    local filename
-    filename=$(basename "$url")
-    log_info "Downloading annotations... $count/$total: $filename"
-    download_file "$url" "$dest_dir/$filename"
-  done
-
-  log_info "All $total annotation CSVs downloaded"
-
-  # Upload to S3 raw zone
-  upload_to_s3 "$dest_dir" "s3://$bucket/raw/annotations/"
+  download_url_set "annotations" "$1" "$2" "${ANNOTATION_URLS[@]}"
 }

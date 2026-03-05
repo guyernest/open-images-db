@@ -65,71 +65,53 @@ while [[ $# -gt 0 ]]; do
 done
 
 # -----------------------------------------------------------------------------
-# Post-download validation: check file counts and sizes in S3
+# Post-download validation: check file counts from manifest.json
+# Args: $1 = manifest file path, $2 = skip_masks (true/false)
 # -----------------------------------------------------------------------------
 
 validate_s3_data() {
-  local bucket="$1"
+  local manifest="$1"
+  local skip_masks="${2:-false}"
   local errors=0
 
   log_info "============================================"
   log_info "Validating data in S3..."
   log_info "============================================"
 
-  # Count annotation CSVs in S3
-  local annotation_count
-  annotation_count=$(aws s3 ls "s3://$bucket/raw/annotations/" \
-    --profile "$AWS_PROFILE" 2>/dev/null | grep -c '\.csv$' || echo "0")
-  if [[ "$annotation_count" -lt 5 ]]; then
-    log_error "Expected 5 annotation CSVs in S3, found $annotation_count"
-    ((errors++))
+  # Count files by prefix using the manifest
+  local annotation_count expected_annotations
+  annotation_count=$(jq '[.[] | select(.Key | startswith("raw/annotations/")) | select(.Key | endswith(".csv"))] | length' "$manifest")
+  expected_annotations=${#ANNOTATION_URLS[@]}
+  if [[ "$annotation_count" -lt "$expected_annotations" ]]; then
+    log_error "Expected $expected_annotations annotation CSVs in S3, found $annotation_count"
+    errors=$((errors + 1))
   else
-    log_info "Annotations: $annotation_count CSV files (expected 5)"
+    log_info "Annotations: $annotation_count CSV files (expected $expected_annotations)"
   fi
 
-  # Count metadata files in S3
-  local metadata_count
-  metadata_count=$(aws s3 ls "s3://$bucket/raw/metadata/" \
-    --profile "$AWS_PROFILE" 2>/dev/null | grep -c '\.csv$' || echo "0")
-  if [[ "$metadata_count" -lt 3 ]]; then
-    log_error "Expected 3 metadata files in S3, found $metadata_count"
-    ((errors++))
+  local metadata_count expected_metadata
+  metadata_count=$(jq '[.[] | select(.Key | startswith("raw/metadata/")) | select(.Key | endswith(".csv"))] | length' "$manifest")
+  expected_metadata=${#METADATA_URLS[@]}
+  if [[ "$metadata_count" -lt "$expected_metadata" ]]; then
+    log_error "Expected $expected_metadata metadata files in S3, found $metadata_count"
+    errors=$((errors + 1))
   else
-    log_info "Metadata: $metadata_count CSV files (expected 3)"
+    log_info "Metadata: $metadata_count CSV files (expected $expected_metadata)"
   fi
 
-  # Count mask PNGs in S3 (using summarize for total count)
-  if [[ "$SKIP_MASKS" == false ]]; then
-    local mask_summary
-    mask_summary=$(aws s3 ls "s3://$bucket/raw/masks/" \
-      --profile "$AWS_PROFILE" --summarize --recursive 2>/dev/null || echo "")
+  if [[ "$skip_masks" == false ]]; then
     local mask_count
-    mask_count=$(echo "$mask_summary" | grep 'Total Objects:' | awk '{print $NF}' || echo "0")
+    mask_count=$(jq '[.[] | select(.Key | startswith("raw/masks/")) | select(.Key | endswith(".png"))] | length' "$manifest")
 
-    if [[ -z "$mask_count" || "$mask_count" == "0" ]]; then
+    if [[ "$mask_count" -eq 0 ]]; then
       log_error "No mask PNGs found in S3"
-      ((errors++))
+      errors=$((errors + 1))
     elif [[ "$mask_count" -lt 20000 ]]; then
       log_warn "Masks: $mask_count PNGs (expected ~24,730 -- may be incomplete)"
     else
       log_info "Masks: $mask_count PNGs (expected ~24,730)"
     fi
-
-    # Report total size for masks
-    local mask_size
-    mask_size=$(echo "$mask_summary" | grep 'Total Size:' | sed 's/.*Total Size: *//' || echo "unknown")
-    log_info "Mask total size: $mask_size bytes"
   fi
-
-  # Report sizes per prefix
-  log_info "--- Size summary ---"
-  for prefix in annotations metadata; do
-    local size_info
-    size_info=$(aws s3 ls "s3://$bucket/raw/$prefix/" \
-      --profile "$AWS_PROFILE" --summarize --recursive 2>/dev/null \
-      | grep 'Total Size:' | sed 's/.*Total Size: *//' || echo "unknown")
-    log_info "  raw/$prefix/: $size_info bytes"
-  done
 
   if [[ $errors -gt 0 ]]; then
     log_error "Validation found $errors error(s)"
@@ -188,16 +170,18 @@ main() {
   local bucket
   bucket=$(discover_bucket "$BUCKET_OVERRIDE")
 
-  # Step 3: Handle validate-only mode
+  # Step 3: Set up temp directory with cleanup trap
+  mkdir -p "$TEMP_DIR"
+  trap 'log_info "Cleaning up temp directory: $TEMP_DIR"; rm -rf "$TEMP_DIR"' EXIT
+  log_info "Temp directory: $TEMP_DIR"
+
+  # Step 4: Handle validate-only mode
   if [[ "$VALIDATE_ONLY" == true ]]; then
     log_info "Running in validate-only mode (skipping downloads)"
-    validate_s3_data "$bucket"
+    generate_manifest "$bucket" "$TEMP_DIR"
+    validate_s3_data "$TEMP_DIR/manifest.json" "$SKIP_MASKS"
     return $?
   fi
-
-  # Step 4: Create temp directories
-  mkdir -p "$TEMP_DIR"/{annotations,metadata,masks,mask-zips}
-  log_info "Temp directory: $TEMP_DIR"
 
   # Step 5: Download annotations (DATA-01)
   log_info "============================================"
@@ -221,11 +205,9 @@ main() {
     log_warn "Skipping mask download (--skip-masks flag set)"
   fi
 
-  # Step 8: Post-download validation
-  validate_s3_data "$bucket"
-
-  # Step 9: Generate manifest
+  # Step 8: Generate manifest and validate
   generate_manifest "$bucket" "$TEMP_DIR"
+  validate_s3_data "$TEMP_DIR/manifest.json" "$SKIP_MASKS"
 
   # Step 10: Print summary
   local end_time elapsed
@@ -236,8 +218,8 @@ main() {
   log_info "Pipeline complete"
   log_info "============================================"
   log_info "Bucket:        $bucket"
-  log_info "Annotations:   5 CSV files -> s3://$bucket/raw/annotations/"
-  log_info "Metadata:      3 CSV files -> s3://$bucket/raw/metadata/"
+  log_info "Annotations:   ${#ANNOTATION_URLS[@]} CSV files -> s3://$bucket/raw/annotations/"
+  log_info "Metadata:      ${#METADATA_URLS[@]} CSV files -> s3://$bucket/raw/metadata/"
   if [[ "$SKIP_MASKS" == false ]]; then
     log_info "Masks:         ~24,730 PNGs -> s3://$bucket/raw/masks/"
   fi

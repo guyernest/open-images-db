@@ -105,13 +105,14 @@ download_file() {
   # Create destination directory if needed
   mkdir -p "$(dirname "$dest")"
 
-  # curl -z provides conditional download (only if remote is newer)
-  # curl -f fails silently on HTTP errors, -S shows error, -L follows redirects
+  # curl -f fails on HTTP errors, -S shows error, -L follows redirects
   # --retry 3 with --retry-delay 5 for transient failures
-  curl -fSL --retry 3 --retry-delay 5 \
-    -z "$dest" \
-    -o "$dest" \
-    "$url" 2>&1 || {
+  # -z provides conditional download (only if file already exists)
+  local curl_args=(-fSL --retry 3 --retry-delay 5 -o "$dest")
+  if [[ -f "$dest" ]]; then
+    curl_args+=(-z "$dest")
+  fi
+  curl "${curl_args[@]}" "$url" 2>&1 || {
     local exit_code=$?
     if [[ $exit_code -eq 22 ]]; then
       log_error "HTTP error downloading $filename (possibly 403/404)"
@@ -137,10 +138,55 @@ download_file() {
 upload_to_s3() {
   local local_dir="$1"
   local s3_prefix="$2"
+  local max_attempts=5
+  local attempt
 
   log_info "Uploading $local_dir -> $s3_prefix"
-  aws s3 sync "$local_dir" "$s3_prefix" \
-    --profile "$AWS_PROFILE" \
-    --no-progress
-  log_info "Upload complete: $s3_prefix"
+  for attempt in $(seq 1 $max_attempts); do
+    if AWS_MAX_ATTEMPTS=10 aws s3 sync "$local_dir" "$s3_prefix" \
+      --profile "$AWS_PROFILE" \
+      --cli-read-timeout 120 \
+      --cli-connect-timeout 30; then
+      log_info "Upload complete: $s3_prefix"
+      return 0
+    fi
+    if [[ $attempt -lt $max_attempts ]]; then
+      log_warn "Upload attempt $attempt/$max_attempts failed, retrying in $((attempt * 5))s..."
+      sleep $((attempt * 5))
+    fi
+  done
+  log_error "Upload failed after $max_attempts attempts: $s3_prefix"
+  return 1
+}
+
+# -----------------------------------------------------------------------------
+# Download a set of URLs to a subdirectory and upload to S3
+# Args: $1 = category name, $2 = temp directory, $3 = S3 bucket, $4.. = URLs
+# -----------------------------------------------------------------------------
+
+download_url_set() {
+  local category="$1"
+  local temp_dir="$2"
+  local bucket="$3"
+  shift 3
+  local urls=("$@")
+  local dest_dir="$temp_dir/$category"
+  local total=${#urls[@]}
+  local count=0
+
+  mkdir -p "$dest_dir"
+
+  log_info "Downloading $category..."
+
+  for url in "${urls[@]}"; do
+    count=$((count + 1))
+    local filename
+    filename=$(basename "$url")
+    log_info "Downloading $category... $count/$total: $filename"
+    download_file "$url" "$dest_dir/$filename"
+  done
+
+  log_info "All $total $category files downloaded"
+
+  upload_to_s3 "$dest_dir" "s3://$bucket/raw/$category/"
 }
