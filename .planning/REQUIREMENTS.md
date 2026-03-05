@@ -15,12 +15,12 @@
 
 ### Data Acquisition
 
-- [ ] **DATA-01**: Shell script downloads Open Images V7 validation set annotation CSVs from GCS to S3 raw zone
-- [ ] **DATA-02**: Shell script downloads validation image list/metadata from GCS to S3 raw zone
-- [ ] **DATA-03**: Shell script downloads segmentation mask PNGs from GCS to S3 raw zone
-- [ ] **DATA-04**: Pipeline scripts are idempotent (safe to re-run without data corruption or duplication)
-- [ ] **DATA-05**: Pipeline scripts handle GCS requester-pays authentication correctly
-- [ ] **DATA-06**: Pipeline scripts include clear execution instructions (prerequisites, step-by-step)
+- [x] **DATA-01**: Shell script downloads Open Images V7 validation set annotation CSVs from GCS to S3 raw zone
+- [x] **DATA-02**: Shell script downloads validation image list/metadata from GCS to S3 raw zone
+- [x] **DATA-03**: Shell script downloads segmentation mask PNGs from GCS to S3 raw zone
+- [x] **DATA-04**: Pipeline scripts are idempotent (safe to re-run without data corruption or duplication)
+- [x] **DATA-05**: Pipeline scripts handle GCS requester-pays authentication correctly
+- [x] **DATA-06**: Pipeline scripts include clear execution instructions (prerequisites, step-by-step)
 
 ### Iceberg Tables
 
@@ -92,12 +92,12 @@
 | INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 1 | Complete |
 | INFRA-05 | Phase 1 | Complete |
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
-| DATA-04 | Phase 2 | Pending |
-| DATA-05 | Phase 2 | Pending |
-| DATA-06 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Complete |
+| DATA-02 | Phase 2 | Complete |
+| DATA-03 | Phase 2 | Complete |
+| DATA-04 | Phase 2 | Complete |
+| DATA-05 | Phase 2 | Complete |
+| DATA-06 | Phase 2 | Complete |
 | TBL-01 | Phase 3 | Pending |
 | TBL-02 | Phase 3 | Pending |
 | TBL-03 | Phase 3 | Pending |
