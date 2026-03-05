@@ -77,7 +77,7 @@
 |---------|--------|
 | MCP server | Built by another team consuming this SQL interface |
 | Image binary storage in S3 | Images are ~300GB; Athena can't process image bytes. Store URLs only |
-| Streaming/CDC pipeline | Open Images V7 is a static dataset — no update stream |
+| Streaming/CDC pipeline | Open Images V7 is a static dataset -- no update stream |
 | Python/Spark ETL (EMR/Glue ETL) | 42K images of CSV data is <500MB; shell + Athena CTAS sufficient |
 | Custom visualization dashboard | Downstream MCP server handles presentation |
 | ML model inference | This is a data pipeline, not an ML platform |
@@ -87,44 +87,44 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase ? | Pending |
-| INFRA-02 | Phase ? | Pending |
-| INFRA-03 | Phase ? | Pending |
-| INFRA-04 | Phase ? | Pending |
-| INFRA-05 | Phase ? | Pending |
-| DATA-01 | Phase ? | Pending |
-| DATA-02 | Phase ? | Pending |
-| DATA-03 | Phase ? | Pending |
-| DATA-04 | Phase ? | Pending |
-| DATA-05 | Phase ? | Pending |
-| DATA-06 | Phase ? | Pending |
-| TBL-01 | Phase ? | Pending |
-| TBL-02 | Phase ? | Pending |
-| TBL-03 | Phase ? | Pending |
-| TBL-04 | Phase ? | Pending |
-| TBL-05 | Phase ? | Pending |
-| TBL-06 | Phase ? | Pending |
-| TBL-07 | Phase ? | Pending |
-| TBL-08 | Phase ? | Pending |
-| TBL-09 | Phase ? | Pending |
-| TBL-10 | Phase ? | Pending |
-| VIEW-01 | Phase ? | Pending |
-| VIEW-02 | Phase ? | Pending |
-| VIEW-03 | Phase ? | Pending |
-| VIEW-04 | Phase ? | Pending |
-| MASK-01 | Phase ? | Pending |
-| VAL-01 | Phase ? | Pending |
-| VAL-02 | Phase ? | Pending |
-| QUERY-01 | Phase ? | Pending |
-| QUERY-02 | Phase ? | Pending |
-| QUERY-03 | Phase ? | Pending |
-| QUERY-04 | Phase ? | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| INFRA-05 | Phase 1 | Pending |
+| DATA-01 | Phase 2 | Pending |
+| DATA-02 | Phase 2 | Pending |
+| DATA-03 | Phase 2 | Pending |
+| DATA-04 | Phase 2 | Pending |
+| DATA-05 | Phase 2 | Pending |
+| DATA-06 | Phase 2 | Pending |
+| TBL-01 | Phase 3 | Pending |
+| TBL-02 | Phase 3 | Pending |
+| TBL-03 | Phase 3 | Pending |
+| TBL-04 | Phase 3 | Pending |
+| TBL-05 | Phase 3 | Pending |
+| TBL-06 | Phase 3 | Pending |
+| TBL-07 | Phase 3 | Pending |
+| TBL-08 | Phase 3 | Pending |
+| TBL-09 | Phase 3 | Pending |
+| TBL-10 | Phase 3 | Pending |
+| VIEW-01 | Phase 4 | Pending |
+| VIEW-02 | Phase 4 | Pending |
+| VIEW-03 | Phase 4 | Pending |
+| VIEW-04 | Phase 4 | Pending |
+| MASK-01 | Phase 4 | Pending |
+| VAL-01 | Phase 5 | Pending |
+| VAL-02 | Phase 5 | Pending |
+| QUERY-01 | Phase 5 | Pending |
+| QUERY-02 | Phase 5 | Pending |
+| QUERY-03 | Phase 5 | Pending |
+| QUERY-04 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 32 total
-- Mapped to phases: 0
-- Unmapped: 32 ⚠️
+- Mapped to phases: 32
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-05*
-*Last updated: 2026-03-05 after initial definition*
+*Last updated: 2026-03-05 after roadmap creation*
