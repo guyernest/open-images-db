@@ -31,8 +31,8 @@
 - [ ] **TBL-05**: Segmentation masks Iceberg table (ImageID, LabelName, BoxID/coordinates, MaskPath, predicted IoU, mask metadata as JSON)
 - [ ] **TBL-06**: Visual relationships Iceberg table (ImageID, LabelName1, LabelName2, RelationshipLabel, box coordinates for both objects)
 - [ ] **TBL-07**: Label hierarchy Iceberg table (parent-child class relationships for hierarchical queries)
-- [ ] **TBL-08**: All Iceberg tables created via Athena DDL (not CDK Glue constructs)
-- [ ] **TBL-09**: CSV data transformed to Iceberg/Parquet via Athena CTAS with correct type casting
+- [x] **TBL-08**: All Iceberg tables created via Athena DDL (not CDK Glue constructs)
+- [x] **TBL-09**: CSV data transformed to Iceberg/Parquet via Athena CTAS with correct type casting
 - [ ] **TBL-10**: JSON-typed string columns parseable by Athena `json_extract` functions where annotation data has nested structure
 
 ### Convenience Views
@@ -105,8 +105,8 @@
 | TBL-05 | Phase 3 | Pending |
 | TBL-06 | Phase 3 | Pending |
 | TBL-07 | Phase 3 | Pending |
-| TBL-08 | Phase 3 | Pending |
-| TBL-09 | Phase 3 | Pending |
+| TBL-08 | Phase 3 | Complete |
+| TBL-09 | Phase 3 | Complete |
 | TBL-10 | Phase 3 | Pending |
 | VIEW-01 | Phase 4 | Pending |
 | VIEW-02 | Phase 4 | Pending |
