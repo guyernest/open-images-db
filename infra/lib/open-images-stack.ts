@@ -95,9 +95,9 @@ export class OpenImagesStack extends cdk.Stack {
             'glue:BatchGetPartition',
           ],
           resources: [
-            `arn:aws:glue:${this.region}:${this.account}:catalog`,
-            `arn:aws:glue:${this.region}:${this.account}:database/open_images`,
-            `arn:aws:glue:${this.region}:${this.account}:table/open_images/*`,
+            this.formatArn({ service: 'glue', resource: 'catalog' }),
+            this.formatArn({ service: 'glue', resource: 'database', resourceName: 'open_images' }),
+            this.formatArn({ service: 'glue', resource: 'table', resourceName: 'open_images/*' }),
           ],
         }),
         // Athena permissions scoped to the workgroup
@@ -111,7 +111,7 @@ export class OpenImagesStack extends cdk.Stack {
             'athena:GetWorkGroup',
           ],
           resources: [
-            `arn:aws:athena:${this.region}:${this.account}:workgroup/${workgroup.name}`,
+            this.formatArn({ service: 'athena', resource: 'workgroup', resourceName: workgroup.name }),
           ],
         }),
       ],

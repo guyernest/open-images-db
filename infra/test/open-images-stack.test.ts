@@ -11,8 +11,9 @@ function createTemplate(): Template {
 }
 
 describe('S3', () => {
+  const template = createTemplate();
+
   test('bucket has correct name pattern and SSE-S3 encryption', () => {
-    const template = createTemplate();
     template.hasResourceProperties('AWS::S3::Bucket', {
       BucketName: Match.stringLikeRegexp('^open-images-'),
       BucketEncryption: {
@@ -27,23 +28,7 @@ describe('S3', () => {
     });
   });
 
-  test('bucket has SSE-S3 encryption (AES256)', () => {
-    const template = createTemplate();
-    template.hasResourceProperties('AWS::S3::Bucket', {
-      BucketEncryption: {
-        ServerSideEncryptionConfiguration: [
-          {
-            ServerSideEncryptionByDefault: {
-              SSEAlgorithm: 'AES256',
-            },
-          },
-        ],
-      },
-    });
-  });
-
   test('bucket blocks all public access', () => {
-    const template = createTemplate();
     template.hasResourceProperties('AWS::S3::Bucket', {
       PublicAccessBlockConfiguration: {
         BlockPublicAcls: true,
@@ -56,8 +41,9 @@ describe('S3', () => {
 });
 
 describe('Teardown', () => {
+  const template = createTemplate();
+
   test('bucket has DeletionPolicy Delete', () => {
-    const template = createTemplate();
     template.hasResource('AWS::S3::Bucket', {
       DeletionPolicy: 'Delete',
       UpdateReplacePolicy: 'Delete',
@@ -65,7 +51,6 @@ describe('Teardown', () => {
   });
 
   test('stack has Custom::S3AutoDeleteObjects for bucket cleanup', () => {
-    const template = createTemplate();
     template.hasResourceProperties('Custom::S3AutoDeleteObjects', {
       BucketName: Match.anyValue(),
     });
@@ -73,8 +58,9 @@ describe('Teardown', () => {
 });
 
 describe('Glue', () => {
+  const template = createTemplate();
+
   test('database has name open_images and locationUri with warehouse/', () => {
-    const template = createTemplate();
     template.hasResourceProperties('AWS::Glue::Database', {
       DatabaseInput: {
         Name: 'open_images',
@@ -91,8 +77,9 @@ describe('Glue', () => {
 });
 
 describe('Athena', () => {
+  const template = createTemplate();
+
   test('workgroup has name open-images with 10GB scan limit and engine v3', () => {
-    const template = createTemplate();
     template.hasResourceProperties('AWS::Athena::WorkGroup', {
       Name: 'open-images',
       WorkGroupConfiguration: {
@@ -106,7 +93,6 @@ describe('Athena', () => {
   });
 
   test('workgroup has result configuration with SSE_S3 encryption', () => {
-    const template = createTemplate();
     template.hasResourceProperties('AWS::Athena::WorkGroup', {
       WorkGroupConfiguration: {
         ResultConfiguration: {
@@ -127,8 +113,9 @@ describe('Athena', () => {
 });
 
 describe('IAM', () => {
+  const template = createTemplate();
+
   test('policy has Glue permissions scoped to open_images resources', () => {
-    const template = createTemplate();
     template.hasResourceProperties('AWS::IAM::ManagedPolicy', {
       PolicyDocument: {
         Statement: Match.arrayWith([
@@ -139,8 +126,20 @@ describe('IAM', () => {
               'glue:CreateTable',
             ]),
             Resource: Match.arrayWith([
-              Match.stringLikeRegexp('database/open_images'),
-              Match.stringLikeRegexp('table/open_images/\\*'),
+              Match.objectLike({
+                'Fn::Join': Match.arrayWith([
+                  Match.arrayWith([
+                    Match.stringLikeRegexp('database/open_images'),
+                  ]),
+                ]),
+              }),
+              Match.objectLike({
+                'Fn::Join': Match.arrayWith([
+                  Match.arrayWith([
+                    Match.stringLikeRegexp('table/open_images/\\*'),
+                  ]),
+                ]),
+              }),
             ]),
           }),
         ]),
@@ -149,7 +148,6 @@ describe('IAM', () => {
   });
 
   test('policy has S3 permissions on the bucket', () => {
-    const template = createTemplate();
     template.hasResourceProperties('AWS::IAM::ManagedPolicy', {
       PolicyDocument: {
         Statement: Match.arrayWith([
@@ -165,7 +163,6 @@ describe('IAM', () => {
   });
 
   test('policy has Athena permissions scoped to workgroup', () => {
-    const template = createTemplate();
     template.hasResourceProperties('AWS::IAM::ManagedPolicy', {
       PolicyDocument: {
         Statement: Match.arrayWith([
@@ -183,9 +180,9 @@ describe('IAM', () => {
 });
 
 describe('Tags', () => {
+  const template = createTemplate();
+
   test('stack resources are tagged with project=open-images', () => {
-    const template = createTemplate();
-    // Check that the S3 bucket has the project tag
     template.hasResourceProperties('AWS::S3::Bucket', {
       Tags: Match.arrayWith([
         Match.objectLike({
