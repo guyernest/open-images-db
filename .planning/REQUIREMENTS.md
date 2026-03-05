@@ -7,11 +7,11 @@
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: CDK stack provisions S3 bucket with two-zone layout (raw/ and warehouse/)
-- [ ] **INFRA-02**: CDK stack provisions Glue database configured as Iceberg catalog
-- [ ] **INFRA-03**: CDK stack provisions Athena workgroup with per-query scan cost limits
-- [ ] **INFRA-04**: CDK stack supports clean teardown via `cdk destroy` (auto-delete objects, removal policy)
-- [ ] **INFRA-05**: CDK stack provisions necessary IAM roles for Athena-to-S3 and Glue access
+- [x] **INFRA-01**: CDK stack provisions S3 bucket with two-zone layout (raw/ and warehouse/)
+- [x] **INFRA-02**: CDK stack provisions Glue database configured as Iceberg catalog
+- [x] **INFRA-03**: CDK stack provisions Athena workgroup with per-query scan cost limits
+- [x] **INFRA-04**: CDK stack supports clean teardown via `cdk destroy` (auto-delete objects, removal policy)
+- [x] **INFRA-05**: CDK stack provisions necessary IAM roles for Athena-to-S3 and Glue access
 
 ### Data Acquisition
 
@@ -87,11 +87,11 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
-| INFRA-04 | Phase 1 | Pending |
-| INFRA-05 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
+| INFRA-04 | Phase 1 | Complete |
+| INFRA-05 | Phase 1 | Complete |
 | DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |
 | DATA-03 | Phase 2 | Pending |
