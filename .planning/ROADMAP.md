@@ -46,11 +46,11 @@ Plans:
   3. Segmentation mask PNGs exist in S3 raw zone
   4. Running any download script a second time completes without data corruption or duplication
   5. A user can follow the execution instructions to run the pipeline from scratch on CloudShell or EC2
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Shell scripts for downloading annotations, metadata, and masks from GCS to S3
+- [ ] 02-02-PLAN.md — Run pipeline and verify all data in S3 raw zone
 
 ### Phase 3: Iceberg Tables
 **Goal**: All annotation data is stored in queryable Iceberg tables with correct schemas and types
@@ -106,7 +106,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 0/2 | Planning complete | - |
-| 2. Data Acquisition | 0/? | Not started | - |
+| 2. Data Acquisition | 0/2 | Planning complete | - |
 | 3. Iceberg Tables | 0/? | Not started | - |
 | 4. Views and Enrichment | 0/? | Not started | - |
 | 5. Validation and Query Surface | 0/? | Not started | - |
