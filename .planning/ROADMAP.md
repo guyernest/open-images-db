@@ -62,12 +62,12 @@ Plans:
   3. A simple SELECT query against each table returns rows with correct column names and types
   4. JSON-typed string columns in mask and relationship tables are parseable by Athena `json_extract` functions
   5. CSV source data was correctly type-cast (numerics are numeric, booleans are boolean, strings are strings)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md — Runner script, S3 reorganization, hierarchy flattener, and verification script
+- [ ] 03-02-PLAN.md — SQL files for all 7 Iceberg tables (external + CTAS with type casting)
+- [ ] 03-03-PLAN.md — Execute pipeline and verify all tables in Athena
 
 ### Phase 4: Views and Enrichment
 **Goal**: Users can query pre-joined views with human-readable labels and SQL-queryable mask geometry
@@ -107,6 +107,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Infrastructure | 0/2 | Planning complete | - |
 | 2. Data Acquisition | 2/2 | Complete   | 2026-03-05 |
-| 3. Iceberg Tables | 0/? | Not started | - |
+| 3. Iceberg Tables | 0/3 | Planning complete | - |
 | 4. Views and Enrichment | 0/? | Not started | - |
 | 5. Validation and Query Surface | 0/? | Not started | - |
