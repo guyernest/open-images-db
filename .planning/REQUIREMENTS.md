@@ -24,16 +24,16 @@
 
 ### Iceberg Tables
 
-- [ ] **TBL-01**: Image metadata Iceberg table (ImageID, OriginalURL, License, Author, dimensions, rotation)
-- [ ] **TBL-02**: Class descriptions Iceberg table (MID to DisplayName mapping)
-- [ ] **TBL-03**: Image labels Iceberg table (ImageID, LabelName/MID, Confidence, Source)
-- [ ] **TBL-04**: Bounding boxes Iceberg table (ImageID, LabelName, XMin/XMax/YMin/YMax, IsOccluded, IsTruncated, IsGroupOf, IsDepiction, IsInside)
-- [ ] **TBL-05**: Segmentation masks Iceberg table (ImageID, LabelName, BoxID/coordinates, MaskPath, predicted IoU, mask metadata as JSON)
-- [ ] **TBL-06**: Visual relationships Iceberg table (ImageID, LabelName1, LabelName2, RelationshipLabel, box coordinates for both objects)
-- [ ] **TBL-07**: Label hierarchy Iceberg table (parent-child class relationships for hierarchical queries)
+- [x] **TBL-01**: Image metadata Iceberg table (ImageID, OriginalURL, License, Author, dimensions, rotation)
+- [x] **TBL-02**: Class descriptions Iceberg table (MID to DisplayName mapping)
+- [x] **TBL-03**: Image labels Iceberg table (ImageID, LabelName/MID, Confidence, Source)
+- [x] **TBL-04**: Bounding boxes Iceberg table (ImageID, LabelName, XMin/XMax/YMin/YMax, IsOccluded, IsTruncated, IsGroupOf, IsDepiction, IsInside)
+- [x] **TBL-05**: Segmentation masks Iceberg table (ImageID, LabelName, BoxID/coordinates, MaskPath, predicted IoU, mask metadata as JSON)
+- [x] **TBL-06**: Visual relationships Iceberg table (ImageID, LabelName1, LabelName2, RelationshipLabel, box coordinates for both objects)
+- [x] **TBL-07**: Label hierarchy Iceberg table (parent-child class relationships for hierarchical queries)
 - [x] **TBL-08**: All Iceberg tables created via Athena DDL (not CDK Glue constructs)
 - [x] **TBL-09**: CSV data transformed to Iceberg/Parquet via Athena CTAS with correct type casting
-- [ ] **TBL-10**: JSON-typed string columns parseable by Athena `json_extract` functions where annotation data has nested structure
+- [x] **TBL-10**: JSON-typed string columns parseable by Athena `json_extract` functions where annotation data has nested structure
 
 ### Convenience Views
 
@@ -98,16 +98,16 @@
 | DATA-04 | Phase 2 | Complete |
 | DATA-05 | Phase 2 | Complete |
 | DATA-06 | Phase 2 | Complete |
-| TBL-01 | Phase 3 | Pending |
-| TBL-02 | Phase 3 | Pending |
-| TBL-03 | Phase 3 | Pending |
-| TBL-04 | Phase 3 | Pending |
-| TBL-05 | Phase 3 | Pending |
-| TBL-06 | Phase 3 | Pending |
-| TBL-07 | Phase 3 | Pending |
+| TBL-01 | Phase 3 | Complete |
+| TBL-02 | Phase 3 | Complete |
+| TBL-03 | Phase 3 | Complete |
+| TBL-04 | Phase 3 | Complete |
+| TBL-05 | Phase 3 | Complete |
+| TBL-06 | Phase 3 | Complete |
+| TBL-07 | Phase 3 | Complete |
 | TBL-08 | Phase 3 | Complete |
 | TBL-09 | Phase 3 | Complete |
-| TBL-10 | Phase 3 | Pending |
+| TBL-10 | Phase 3 | Complete |
 | VIEW-01 | Phase 4 | Pending |
 | VIEW-02 | Phase 4 | Pending |
 | VIEW-03 | Phase 4 | Pending |
