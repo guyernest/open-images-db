@@ -24,6 +24,7 @@ TBLPROPERTIES ('skip.header.line.count' = '1');
 CREATE TABLE __DATABASE__.label_hierarchy
 WITH (
   table_type     = 'ICEBERG',
+  is_external    = false,
   format         = 'PARQUET',
   write_compression = 'SNAPPY',
   location       = 's3://__BUCKET__/warehouse/label_hierarchy/'

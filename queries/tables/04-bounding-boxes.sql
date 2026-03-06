@@ -43,6 +43,7 @@ TBLPROPERTIES ('skip.header.line.count' = '1');
 CREATE TABLE __DATABASE__.bounding_boxes
 WITH (
   table_type     = 'ICEBERG',
+  is_external    = false,
   format         = 'PARQUET',
   write_compression = 'SNAPPY',
   location       = 's3://__BUCKET__/warehouse/bounding_boxes/'

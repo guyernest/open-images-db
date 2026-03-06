@@ -111,9 +111,10 @@ process_sql_file() {
   log_info "Processing: $filename"
   log_info "--------------------------------------------"
 
-  # Read the file and substitute the bucket placeholder
+  # Read the file, substitute placeholders, and strip comment-only lines
+  # (comments before first semicolon would otherwise attach to first statement)
   local sql_content
-  sql_content=$(sed -e "s|__BUCKET__|${bucket}|g" -e "s|__DATABASE__|${ATHENA_DATABASE}|g" "$sql_file")
+  sql_content=$(sed -e "s|__BUCKET__|${bucket}|g" -e "s|__DATABASE__|${ATHENA_DATABASE}|g" -e '/^[[:space:]]*--/d' "$sql_file")
 
   # Split on semicolons, skip chunks that have no actual SQL (only comments/whitespace)
   local IFS=";"

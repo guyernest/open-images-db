@@ -26,6 +26,7 @@ TBLPROPERTIES ('skip.header.line.count' = '1');
 CREATE TABLE __DATABASE__.class_descriptions
 WITH (
   table_type     = 'ICEBERG',
+  is_external    = false,
   format         = 'PARQUET',
   write_compression = 'SNAPPY',
   location       = 's3://__BUCKET__/warehouse/class_descriptions/'
