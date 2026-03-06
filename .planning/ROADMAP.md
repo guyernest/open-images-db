@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Data Acquisition** - Shell scripts download all annotation data from GCS to S3 (completed 2026-03-05)
 - [ ] **Phase 3: Iceberg Tables** - Athena DDL/CTAS creates and populates all Iceberg tables
 - [ ] **Phase 4: Views and Enrichment** - Convenience views and pre-computed mask metadata
-- [ ] **Phase 5: Validation and Query Surface** - Data quality checks, example queries, and schema docs
+- [x] **Phase 5: Validation and Query Surface** - Data quality checks, example queries, and schema docs (completed 2026-03-06)
 
 ## Phase Details
 
@@ -109,4 +109,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Data Acquisition | 2/2 | Complete   | 2026-03-05 |
 | 3. Iceberg Tables | 2/3 | In Progress|  |
 | 4. Views and Enrichment | 0/2 | Planning complete | - |
-| 5. Validation and Query Surface | 1/2 | In Progress|  |
+| 5. Validation and Query Surface | 2/2 | Complete | 2026-03-06 |
