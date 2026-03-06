@@ -35,11 +35,14 @@ readonly ICEBERG_TABLES=(
   label_hierarchy
 )
 
-# Raw table counterparts (labels is special: sum of two raw tables)
+# Sentinel for labels (sum of two raw tables instead of single raw table)
+readonly LABELS_SPECIAL="__labels_special__"
+
+# Raw table counterparts (labels uses sentinel: sum of two raw tables)
 readonly RAW_TABLES=(
   raw_images
   raw_class_descriptions
-  __labels_special__
+  "$LABELS_SPECIAL"
   raw_bounding_boxes
   raw_masks
   raw_relationships
@@ -75,6 +78,27 @@ done
 # -----------------------------------------------------------------------------
 # Main execution
 # -----------------------------------------------------------------------------
+
+# Run a spot-check: count rows violating a condition (0 = all valid)
+# Args: $1 = table name, $2 = WHERE clause for invalid rows, $3 = description
+# Prints: PASS/FAIL log line
+# Returns: 0 on pass, 1 on fail
+run_spot_check() {
+  local table="$1" invalid_where="$2" description="$3"
+
+  local violation_count
+  violation_count=$(athena_query_scalar \
+    "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.${table} WHERE ${invalid_where}" \
+    "spotcheck($table)") || { echo "ERROR"; return 1; }
+
+  if [[ "$violation_count" -eq 0 ]]; then
+    log_info "PASS: $description (all rows valid)"
+    return 0
+  else
+    log_error "FAIL: $description ($violation_count violation(s))"
+    return 1
+  fi
+}
 
 main() {
   local start_time
@@ -118,7 +142,7 @@ main() {
 
     # Get raw table count (labels is special: sum of human + machine)
     local raw_count
-    if [[ "$raw" == "__labels_special__" ]]; then
+    if [[ "$raw" == "$LABELS_SPECIAL" ]]; then
       raw_count=$(athena_query_scalar \
         "SELECT (SELECT COUNT(*) FROM ${ATHENA_DATABASE}.raw_labels_human) + (SELECT COUNT(*) FROM ${ATHENA_DATABASE}.raw_labels_machine)" \
         "count(raw_labels_human+raw_labels_machine)") || {
@@ -173,78 +197,33 @@ main() {
     # --- Bounding boxes spot-check ---
     total_checks=$((total_checks + 1))
     log_info "Spot-check: bounding_boxes coordinates and booleans"
-
-    local bbox_result
-    bbox_result=$(athena_query_scalar \
-      "SELECT CASE
-        WHEN x_min BETWEEN 0.0 AND 1.0
-         AND x_max BETWEEN 0.0 AND 1.0
-         AND y_min BETWEEN 0.0 AND 1.0
-         AND y_max BETWEEN 0.0 AND 1.0
-         AND is_occluded IS NOT NULL
-         AND is_truncated IS NOT NULL
-         AND is_group_of IS NOT NULL
-         AND is_depiction IS NOT NULL
-         AND is_inside IS NOT NULL
-        THEN 'VALID'
-        ELSE 'INVALID'
-       END
-       FROM ${ATHENA_DATABASE}.bounding_boxes LIMIT 1" \
-      "spotcheck(bounding_boxes)") || bbox_result="ERROR"
-
-    if [[ "$bbox_result" == "VALID" ]]; then
-      log_info "PASS: bounding_boxes sample row has valid coordinates (0.0-1.0) and non-null booleans"
+    if run_spot_check "bounding_boxes" \
+      "NOT (x_min BETWEEN 0.0 AND 1.0 AND x_max BETWEEN 0.0 AND 1.0 AND y_min BETWEEN 0.0 AND 1.0 AND y_max BETWEEN 0.0 AND 1.0 AND is_occluded IS NOT NULL AND is_truncated IS NOT NULL AND is_group_of IS NOT NULL AND is_depiction IS NOT NULL AND is_inside IS NOT NULL)" \
+      "bounding_boxes coordinates (0.0-1.0) and non-null booleans"; then
       passed=$((passed + 1))
     else
-      log_error "FAIL: bounding_boxes sample row has invalid coordinates or null booleans (result: $bbox_result)"
       failed=$((failed + 1))
     fi
 
     # --- Labels spot-check ---
     total_checks=$((total_checks + 1))
     log_info "Spot-check: labels confidence and source"
-
-    local labels_result
-    labels_result=$(athena_query_scalar \
-      "SELECT CASE
-        WHEN confidence BETWEEN 0.0 AND 1.0
-         AND source IS NOT NULL
-         AND source <> ''
-        THEN 'VALID'
-        ELSE 'INVALID'
-       END
-       FROM ${ATHENA_DATABASE}.labels LIMIT 1" \
-      "spotcheck(labels)") || labels_result="ERROR"
-
-    if [[ "$labels_result" == "VALID" ]]; then
-      log_info "PASS: labels sample row has valid confidence (0.0-1.0) and non-empty source"
+    if run_spot_check "labels" \
+      "NOT (confidence BETWEEN 0.0 AND 1.0 AND source IS NOT NULL AND source <> '')" \
+      "labels confidence (0.0-1.0) and non-empty source"; then
       passed=$((passed + 1))
     else
-      log_error "FAIL: labels sample row has invalid confidence or empty source (result: $labels_result)"
       failed=$((failed + 1))
     fi
 
     # --- Masks spot-check ---
     total_checks=$((total_checks + 1))
     log_info "Spot-check: masks predicted_iou and mask_path"
-
-    local masks_result
-    masks_result=$(athena_query_scalar \
-      "SELECT CASE
-        WHEN predicted_iou BETWEEN 0.0 AND 1.0
-         AND mask_path IS NOT NULL
-         AND mask_path <> ''
-        THEN 'VALID'
-        ELSE 'INVALID'
-       END
-       FROM ${ATHENA_DATABASE}.masks LIMIT 1" \
-      "spotcheck(masks)") || masks_result="ERROR"
-
-    if [[ "$masks_result" == "VALID" ]]; then
-      log_info "PASS: masks sample row has valid predicted_iou (0.0-1.0) and non-empty mask_path"
+    if run_spot_check "masks" \
+      "NOT (predicted_iou BETWEEN 0.0 AND 1.0 AND mask_path IS NOT NULL AND mask_path <> '')" \
+      "masks predicted_iou (0.0-1.0) and non-empty mask_path"; then
       passed=$((passed + 1))
     else
-      log_error "FAIL: masks sample row has invalid predicted_iou or empty mask_path (result: $masks_result)"
       failed=$((failed + 1))
     fi
   else

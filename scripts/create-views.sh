@@ -37,7 +37,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      head -18 "${BASH_SOURCE[0]}" | grep '^#' | sed 's/^# \?//'
+      sed -n '2,/^# ====/{/^# ====/d;s/^# \?//;p}' "${BASH_SOURCE[0]}"
       exit 0
       ;;
     *)
@@ -46,25 +46,6 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
-
-# -----------------------------------------------------------------------------
-# Execute a single SQL statement via Athena (with dry-run support)
-# Args: $1 = SQL statement, $2 = description
-# Returns: 0 on success, 1 on failure
-# -----------------------------------------------------------------------------
-
-run_athena_query() {
-  local sql="$1"
-  local description="$2"
-
-  if [[ "$DRY_RUN" == true ]]; then
-    log_info "[DRY RUN] Would execute: $description"
-    log_info "  SQL: ${sql:0:120}..."
-    return 0
-  fi
-
-  athena_execute_and_wait "$sql" "$description"
-}
 
 # -----------------------------------------------------------------------------
 # Main execution

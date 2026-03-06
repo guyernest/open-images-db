@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      head -19 "${BASH_SOURCE[0]}" | grep '^#' | sed 's/^# \?//'
+      sed -n '2,/^# ====/{/^# ====/d;s/^# \?//;p}' "${BASH_SOURCE[0]}"
       exit 0
       ;;
     *)

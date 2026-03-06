@@ -43,16 +43,17 @@ athena_execute_and_wait() {
 
   # Poll until complete
   local status="RUNNING"
+  local poll_json
   while [[ "$status" == "RUNNING" || "$status" == "QUEUED" ]]; do
     sleep 2
-    status=$(aws athena get-query-execution \
+    poll_json=$(aws athena get-query-execution \
       --query-execution-id "$query_id" \
       --profile "$AWS_PROFILE" \
-      --output text \
-      --query 'QueryExecution.Status.State') || {
+      --output json) || {
       log_error "Failed to check query status: $query_id"
       return 1
     }
+    status=$(echo "$poll_json" | jq -r '.QueryExecution.Status.State')
   done
 
   if [[ "$status" == "SUCCEEDED" ]]; then
@@ -60,14 +61,30 @@ athena_execute_and_wait() {
     return 0
   else
     local reason
-    reason=$(aws athena get-query-execution \
-      --query-execution-id "$query_id" \
-      --profile "$AWS_PROFILE" \
-      --output text \
-      --query 'QueryExecution.Status.StateChangeReason' 2>/dev/null || echo "Unknown reason")
+    reason=$(echo "$poll_json" | jq -r '.QueryExecution.Status.StateChangeReason // "Unknown reason"')
     log_error "Failed ($status): $description -- $reason"
     return 1
   fi
+}
+
+# -----------------------------------------------------------------------------
+# Execute a single SQL statement with dry-run support
+# Requires caller to set DRY_RUN=true/false before calling
+# Args: $1 = SQL statement, $2 = description
+# Returns: 0 on success, 1 on failure
+# -----------------------------------------------------------------------------
+
+run_athena_query() {
+  local sql="$1"
+  local description="$2"
+
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    log_info "[DRY RUN] Would execute: $description"
+    log_info "  SQL: ${sql:0:120}..."
+    return 0
+  fi
+
+  athena_execute_and_wait "$sql" "$description"
 }
 
 # -----------------------------------------------------------------------------

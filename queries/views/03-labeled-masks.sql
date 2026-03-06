@@ -29,6 +29,10 @@ SELECT
   (m.box_y_max - m.box_y_min)                                AS box_height,
   (m.box_x_min + m.box_x_max) / 2.0                          AS box_center_x,
   (m.box_y_min + m.box_y_max) / 2.0                          AS box_center_y,
+  CASE WHEN (m.box_y_max - m.box_y_min) > 0
+    THEN (m.box_x_max - m.box_x_min) / (m.box_y_max - m.box_y_min)
+    ELSE NULL
+  END                                                         AS aspect_ratio,
   -- Click count from semicolon-delimited clicks column
   CASE
     WHEN m.clicks IS NULL OR m.clicks = '' THEN 0
