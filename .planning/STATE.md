@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 4 context gathered
-last_updated: "2026-03-06T00:42:46.643Z"
+last_updated: "2026-03-06T00:56:46.117Z"
 last_activity: 2026-03-05 -- Completed 03-03 Pipeline Execution and Verification
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
   percent: 86
 ---
 
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Core value:** A fully queryable SQL interface over Open Images V7 annotations via Athena/Iceberg
-**Current focus:** Phase 3: Iceberg Tables (Complete)
+**Current focus:** Phase 4: Views and Enrichment (In Progress)
 
 ## Current Position
 
-Phase: 3 of 5 (Iceberg Tables) -- COMPLETE
-Plan: 3 of 3 in current phase (all done)
+Phase: 4 of 5 (Views and Enrichment)
+Plan: 1 of 2 in current phase
 Status: Executing
-Last activity: 2026-03-05 -- Completed 03-03 Pipeline Execution and Verification
+Last activity: 2026-03-06 -- Completed 04-01 Athena Views and Scripts
 
-Progress: [█████████░] 86%
+Progress: [████████░░] 78%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 2.5min
-- Total execution time: 0.25 hours
+- Total plans completed: 7
+- Average duration: 2.4min
+- Total execution time: 0.28 hours
 
 **By Phase:**
 
@@ -46,6 +46,7 @@ Progress: [█████████░] 86%
 | 01-infrastructure | 1 | 3min | 3min |
 | 02-data-acquisition | 2 | 4min | 2min |
 | 03-iceberg-tables | 3 | 9min | 3min |
+| 04-views-and-enrichment | 1 | 2min | 2min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase 03-iceberg-tables]: Masks clicks column kept as VARCHAR for future json_extract compatibility (TBL-10)
 - [Phase 03-iceberg-tables]: Class descriptions assumes header row exists with documented assumption
 - [Phase 03-iceberg-tables]: Pipeline execution verified by human operator running create-tables.sh and verify-tables.sh end-to-end
+- [Phase 04-views-and-enrichment]: INNER JOIN used for views; verify-views.sh warns if row counts differ from base tables
+- [Phase 04-views-and-enrichment]: Clicks parsed via split/cardinality (not json_extract) -- clicks column is semicolon-delimited, not JSON
+- [Phase 04-views-and-enrichment]: Simplified runner script -- no S3 reorg, no hierarchy, no multi-statement splitting
 
 ### Pending Todos
 
@@ -87,6 +91,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T00:42:46.641Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-views-and-enrichment/04-CONTEXT.md
+Last session: 2026-03-06T00:56:09Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: .planning/phases/04-views-and-enrichment/04-01-SUMMARY.md

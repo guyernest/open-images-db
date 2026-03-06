@@ -37,14 +37,14 @@
 
 ### Convenience Views
 
-- [ ] **VIEW-01**: Athena view joining images with human-readable labels (images + labels + class descriptions)
-- [ ] **VIEW-02**: Athena view joining images with bounding boxes and label names
-- [ ] **VIEW-03**: Athena view joining images with segmentation masks and label names
-- [ ] **VIEW-04**: Athena view joining images with visual relationships and label names
+- [x] **VIEW-01**: Athena view joining images with human-readable labels (images + labels + class descriptions)
+- [x] **VIEW-02**: Athena view joining images with bounding boxes and label names
+- [x] **VIEW-03**: Athena view joining images with segmentation masks and label names
+- [x] **VIEW-04**: Athena view joining images with visual relationships and label names
 
 ### Mask Enrichment
 
-- [ ] **MASK-01**: Pre-computed mask metadata (area, bounding polygon) stored alongside raw RLE data for SQL-queryable mask geometry
+- [x] **MASK-01**: Pre-computed mask metadata (area, bounding polygon) stored alongside raw RLE data for SQL-queryable mask geometry
 
 ### Validation
 
@@ -108,11 +108,11 @@
 | TBL-08 | Phase 3 | Complete |
 | TBL-09 | Phase 3 | Complete |
 | TBL-10 | Phase 3 | Complete |
-| VIEW-01 | Phase 4 | Pending |
-| VIEW-02 | Phase 4 | Pending |
-| VIEW-03 | Phase 4 | Pending |
-| VIEW-04 | Phase 4 | Pending |
-| MASK-01 | Phase 4 | Pending |
+| VIEW-01 | Phase 4 | Complete |
+| VIEW-02 | Phase 4 | Complete |
+| VIEW-03 | Phase 4 | Complete |
+| VIEW-04 | Phase 4 | Complete |
+| MASK-01 | Phase 4 | Complete |
 | VAL-01 | Phase 5 | Pending |
 | VAL-02 | Phase 5 | Pending |
 | QUERY-01 | Phase 5 | Pending |
