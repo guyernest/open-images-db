@@ -77,11 +77,11 @@ Plans:
   1. A user can query a single view to get images with human-readable label names (not just MIDs)
   2. Bounding box, segmentation mask, and visual relationship views each join correctly with image and class description data
   3. Pre-computed mask metadata (area, bounding polygon) is queryable via SQL without external processing
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — View SQL files, runner script (create-views.sh), and verification script (verify-views.sh)
+- [ ] 04-02-PLAN.md — Execute pipeline and verify all views in Athena
 
 ### Phase 5: Validation and Query Surface
 **Goal**: Data quality is verified and downstream teams have everything needed to build on the SQL interface
@@ -108,5 +108,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Infrastructure | 0/2 | Planning complete | - |
 | 2. Data Acquisition | 2/2 | Complete   | 2026-03-05 |
 | 3. Iceberg Tables | 2/3 | In Progress|  |
-| 4. Views and Enrichment | 0/? | Not started | - |
+| 4. Views and Enrichment | 0/2 | Planning complete | - |
 | 5. Validation and Query Surface | 0/? | Not started | - |
