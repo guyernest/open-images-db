@@ -92,11 +92,11 @@ Plans:
   2. Spot-check queries return known correct values for specific ImageIDs across all tables
   3. 8-12 example SQL queries exist covering single-table queries for each annotation type, cross-table joins, and JSON field parsing
   4. Schema documentation exists with column names, types, semantics, and source CSV mapping for every table
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Validation script, schema documentation, and example SQL queries
+- [ ] 05-02-PLAN.md — Execute validation against live Athena and final project verification
 
 ## Progress
 
@@ -109,4 +109,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Data Acquisition | 2/2 | Complete   | 2026-03-05 |
 | 3. Iceberg Tables | 2/3 | In Progress|  |
 | 4. Views and Enrichment | 0/2 | Planning complete | - |
-| 5. Validation and Query Surface | 0/? | Not started | - |
+| 5. Validation and Query Surface | 0/2 | Planning complete | - |
