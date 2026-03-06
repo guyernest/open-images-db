@@ -48,8 +48,8 @@ SELECT
   author_profile_url,
   author,
   title,
-  CAST(original_size AS INT) AS original_size,
+  CASE WHEN original_size = '' THEN NULL ELSE CAST(original_size AS INT) END AS original_size,
   original_md5,
   thumbnail_300k_url,
-  CAST(rotation AS DOUBLE) AS rotation
+  CASE WHEN rotation = '' THEN NULL ELSE CAST(rotation AS DOUBLE) END AS rotation
 FROM __DATABASE__.raw_images;
