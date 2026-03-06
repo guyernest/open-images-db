@@ -48,15 +48,15 @@
 
 ### Validation
 
-- [ ] **VAL-01**: Row count validation comparing source CSVs to Iceberg table counts
-- [ ] **VAL-02**: Spot-check validation of known values across tables
+- [x] **VAL-01**: Row count validation comparing source CSVs to Iceberg table counts
+- [x] **VAL-02**: Spot-check validation of known values across tables
 
 ### Query Surface
 
-- [ ] **QUERY-01**: 8-12 example SQL queries covering single-table queries for each annotation type
-- [ ] **QUERY-02**: Example SQL queries demonstrating cross-table joins (e.g., find images with specific label AND bounding box)
-- [ ] **QUERY-03**: Example SQL queries demonstrating JSON field parsing for mask and relationship data
-- [ ] **QUERY-04**: Schema documentation with column names, types, semantics, and source CSV mapping for every table
+- [x] **QUERY-01**: 8-12 example SQL queries covering single-table queries for each annotation type
+- [x] **QUERY-02**: Example SQL queries demonstrating cross-table joins (e.g., find images with specific label AND bounding box)
+- [x] **QUERY-03**: Example SQL queries demonstrating JSON field parsing for mask and relationship data
+- [x] **QUERY-04**: Schema documentation with column names, types, semantics, and source CSV mapping for every table
 
 ## v2 Requirements
 
@@ -113,12 +113,12 @@
 | VIEW-03 | Phase 4 | Complete |
 | VIEW-04 | Phase 4 | Complete |
 | MASK-01 | Phase 4 | Complete |
-| VAL-01 | Phase 5 | Pending |
-| VAL-02 | Phase 5 | Pending |
-| QUERY-01 | Phase 5 | Pending |
-| QUERY-02 | Phase 5 | Pending |
-| QUERY-03 | Phase 5 | Pending |
-| QUERY-04 | Phase 5 | Pending |
+| VAL-01 | Phase 5 | Complete |
+| VAL-02 | Phase 5 | Complete |
+| QUERY-01 | Phase 5 | Complete |
+| QUERY-02 | Phase 5 | Complete |
+| QUERY-03 | Phase 5 | Complete |
+| QUERY-04 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 32 total

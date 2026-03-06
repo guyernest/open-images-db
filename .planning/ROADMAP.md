@@ -109,4 +109,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Data Acquisition | 2/2 | Complete   | 2026-03-05 |
 | 3. Iceberg Tables | 2/3 | In Progress|  |
 | 4. Views and Enrichment | 0/2 | Planning complete | - |
-| 5. Validation and Query Surface | 0/2 | Planning complete | - |
+| 5. Validation and Query Surface | 1/2 | In Progress|  |

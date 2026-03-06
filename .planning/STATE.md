@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-06T01:19:31.012Z"
-last_activity: 2026-03-06 -- Completed 04-02 View Execution and Verification
+stopped_at: Completed 05-01 Validation and Query Surface
+last_updated: "2026-03-06T01:36:36.722Z"
+last_activity: 2026-03-06 -- Completed 05-01 Validation and Query Surface
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 8
-  percent: 89
+  total_plans: 11
+  completed_plans: 9
+  percent: 82
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Core value:** A fully queryable SQL interface over Open Images V7 annotations via Athena/Iceberg
-**Current focus:** Phase 4: Views and Enrichment (Complete)
+**Current focus:** Phase 5: Validation and Query Surface
 
 ## Current Position
 
-Phase: 4 of 5 (Views and Enrichment) -- Complete
-Plan: 2 of 2 in current phase (done)
+Phase: 5 of 5 (Validation and Query Surface)
+Plan: 1 of 1 in current phase (done)
 Status: Executing
-Last activity: 2026-03-06 -- Completed 04-02 View Execution and Verification
+Last activity: 2026-03-06 -- Completed 05-01 Validation and Query Surface
 
-Progress: [█████████░] 89%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 2.6min
-- Total execution time: 0.35 hours
+- Total plans completed: 9
+- Average duration: 2.7min
+- Total execution time: 0.40 hours
 
 **By Phase:**
 
@@ -47,6 +47,7 @@ Progress: [█████████░] 89%
 | 02-data-acquisition | 2 | 4min | 2min |
 | 03-iceberg-tables | 3 | 9min | 3min |
 | 04-views-and-enrichment | 2 | 5min | 2.5min |
+| 05-validation-and-query-surface | 1 | 3min | 3min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase 04-views-and-enrichment]: Clicks parsed via split/cardinality (not json_extract) -- clicks column is semicolon-delimited, not JSON
 - [Phase 04-views-and-enrichment]: Simplified runner script -- no S3 reorg, no hierarchy, no multi-statement splitting
 - [Phase 04]: Relationships view drops 886 rows (3.3%) due to INNER JOIN -- accepted per design
+- [Phase 05-validation]: 1% tolerance threshold for row count validation (exact=PASS, within 1%=WARN, above=FAIL)
+- [Phase 05-validation]: Spot-checks use CASE WHEN THEN VALID/INVALID pattern for single-query validation
+- [Phase 05-validation]: Example queries use fully-qualified open_images.tablename references
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T01:19:31.009Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-validation-and-query-surface/05-CONTEXT.md
+Last session: 2026-03-06T01:35:48Z
+Stopped at: Completed 05-01 Validation and Query Surface
+Resume file: .planning/phases/05-validation-and-query-surface/05-01-SUMMARY.md
