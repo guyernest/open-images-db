@@ -22,16 +22,10 @@ fi
 # Args: $1 = bucket, $2 = source key, $3 = dest key
 # -----------------------------------------------------------------------------
 
-copy_if_missing() {
+copy_raw_file() {
   local bucket="$1"
   local src_key="$2"
   local dest_key="$3"
-
-  # Check if destination already exists
-  if aws s3 ls "s3://${bucket}/${dest_key}" --profile "$AWS_PROFILE" >/dev/null 2>&1; then
-    log_info "  Already exists: s3://${bucket}/${dest_key}"
-    return 0
-  fi
 
   log_info "  Copying: s3://${bucket}/${src_key} -> s3://${bucket}/${dest_key}"
   aws s3 cp \
@@ -58,38 +52,38 @@ reorganize_raw_data() {
   log_info "============================================"
 
   # Metadata files
-  copy_if_missing "$bucket" \
+  copy_raw_file "$bucket" \
     "raw/metadata/validation-images-with-rotation.csv" \
     "raw/tables/images/validation-images-with-rotation.csv" \
     || errors=$((errors + 1))
 
-  copy_if_missing "$bucket" \
+  copy_raw_file "$bucket" \
     "raw/metadata/oidv7-class-descriptions.csv" \
     "raw/tables/class_descriptions/oidv7-class-descriptions.csv" \
     || errors=$((errors + 1))
 
   # Annotation files
-  copy_if_missing "$bucket" \
+  copy_raw_file "$bucket" \
     "raw/annotations/oidv7-val-annotations-human-imagelabels.csv" \
     "raw/tables/labels_human/oidv7-val-annotations-human-imagelabels.csv" \
     || errors=$((errors + 1))
 
-  copy_if_missing "$bucket" \
+  copy_raw_file "$bucket" \
     "raw/annotations/oidv7-val-annotations-machine-imagelabels.csv" \
     "raw/tables/labels_machine/oidv7-val-annotations-machine-imagelabels.csv" \
     || errors=$((errors + 1))
 
-  copy_if_missing "$bucket" \
+  copy_raw_file "$bucket" \
     "raw/annotations/validation-annotations-bbox.csv" \
     "raw/tables/bounding_boxes/validation-annotations-bbox.csv" \
     || errors=$((errors + 1))
 
-  copy_if_missing "$bucket" \
+  copy_raw_file "$bucket" \
     "raw/annotations/validation-annotations-object-segmentation.csv" \
     "raw/tables/masks/validation-annotations-object-segmentation.csv" \
     || errors=$((errors + 1))
 
-  copy_if_missing "$bucket" \
+  copy_raw_file "$bucket" \
     "raw/annotations/oidv6-validation-annotations-vrd.csv" \
     "raw/tables/relationships/oidv6-validation-annotations-vrd.csv" \
     || errors=$((errors + 1))

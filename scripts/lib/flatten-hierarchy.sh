@@ -41,18 +41,9 @@ flatten_hierarchy() {
   # Ensure cleanup on exit from this function
   trap 'rm -f "$temp_json" "$temp_csv"' RETURN
 
-  # Download hierarchy JSON
+  # Download hierarchy JSON (reuses common.sh download_file with retry + empty check)
   log_info "Downloading hierarchy JSON from $HIERARCHY_URL"
-  curl -fSL --retry 3 --retry-delay 5 -o "$temp_json" "$HIERARCHY_URL" 2>&1 || {
-    log_error "Failed to download hierarchy JSON"
-    return 1
-  }
-
-  if [[ ! -s "$temp_json" ]]; then
-    log_error "Downloaded hierarchy JSON is empty"
-    return 1
-  fi
-
+  download_file "$HIERARCHY_URL" "$temp_json"
   log_info "Downloaded hierarchy JSON ($(wc -c < "$temp_json" | tr -d ' ') bytes)"
 
   # Flatten using jq recursive descent

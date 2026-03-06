@@ -28,13 +28,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source all library files
 source "$SCRIPT_DIR/lib/common.sh"
+source "$SCRIPT_DIR/lib/athena.sh"
 source "$SCRIPT_DIR/lib/reorganize-raw.sh"
 source "$SCRIPT_DIR/lib/flatten-hierarchy.sh"
-
-# Athena configuration
-readonly ATHENA_WORKGROUP="open-images"
-readonly ATHENA_DATABASE="open_images"
-readonly ATHENA_CATALOG="AwsDataCatalog"
 
 # -----------------------------------------------------------------------------
 # Argument parsing
@@ -79,13 +75,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 # -----------------------------------------------------------------------------
-# Execute a single SQL statement via Athena and wait for completion
+# Execute a single SQL statement via Athena (with dry-run support)
 # Args: $1 = SQL statement, $2 = description
 # Returns: 0 on success, 1 on failure
-# Sets: LAST_QUERY_ID (for result retrieval)
 # -----------------------------------------------------------------------------
-
-LAST_QUERY_ID=""
 
 run_athena_query() {
   local sql="$1"
@@ -97,48 +90,7 @@ run_athena_query() {
     return 0
   fi
 
-  local query_id
-  query_id=$(aws athena start-query-execution \
-    --query-string "$sql" \
-    --work-group "$ATHENA_WORKGROUP" \
-    --query-execution-context "Database=${ATHENA_DATABASE},Catalog=${ATHENA_CATALOG}" \
-    --profile "$AWS_PROFILE" \
-    --output text \
-    --query 'QueryExecutionId') || {
-    log_error "Failed to start query: $description"
-    return 1
-  }
-
-  LAST_QUERY_ID="$query_id"
-  log_info "Started: $description (ID: $query_id)"
-
-  # Poll until complete
-  local status="RUNNING"
-  while [[ "$status" == "RUNNING" || "$status" == "QUEUED" ]]; do
-    sleep 2
-    status=$(aws athena get-query-execution \
-      --query-execution-id "$query_id" \
-      --profile "$AWS_PROFILE" \
-      --output text \
-      --query 'QueryExecution.Status.State') || {
-      log_error "Failed to check query status: $query_id"
-      return 1
-    }
-  done
-
-  if [[ "$status" == "SUCCEEDED" ]]; then
-    log_info "Succeeded: $description"
-    return 0
-  else
-    local reason
-    reason=$(aws athena get-query-execution \
-      --query-execution-id "$query_id" \
-      --profile "$AWS_PROFILE" \
-      --output text \
-      --query 'QueryExecution.Status.StateChangeReason' 2>/dev/null || echo "Unknown reason")
-    log_error "Failed ($status): $description -- $reason"
-    return 1
-  fi
+  athena_execute_and_wait "$sql" "$description"
 }
 
 # -----------------------------------------------------------------------------
@@ -161,7 +113,7 @@ process_sql_file() {
 
   # Read the file and substitute the bucket placeholder
   local sql_content
-  sql_content=$(sed "s|__BUCKET__|${bucket}|g" "$sql_file")
+  sql_content=$(sed -e "s|__BUCKET__|${bucket}|g" -e "s|__DATABASE__|${ATHENA_DATABASE}|g" "$sql_file")
 
   # Split on semicolons, trim whitespace, skip empty statements
   local IFS=";"

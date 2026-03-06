@@ -5,11 +5,11 @@
 -- Note: Assuming CSV has a header row (skip.header.line.count=1).
 --       If the first data row is missing after creation, set to '0' and re-run.
 
-DROP TABLE IF EXISTS open_images.class_descriptions;
+DROP TABLE IF EXISTS __DATABASE__.class_descriptions;
 
-DROP TABLE IF EXISTS open_images.raw_class_descriptions;
+DROP TABLE IF EXISTS __DATABASE__.raw_class_descriptions;
 
-CREATE EXTERNAL TABLE open_images.raw_class_descriptions (
+CREATE EXTERNAL TABLE __DATABASE__.raw_class_descriptions (
   label_name    STRING,
   display_name  STRING
 )
@@ -23,7 +23,7 @@ STORED AS TEXTFILE
 LOCATION 's3://__BUCKET__/raw/tables/class_descriptions/'
 TBLPROPERTIES ('skip.header.line.count' = '1');
 
-CREATE TABLE open_images.class_descriptions
+CREATE TABLE __DATABASE__.class_descriptions
 WITH (
   table_type     = 'ICEBERG',
   format         = 'PARQUET',
@@ -33,4 +33,4 @@ WITH (
 SELECT
   label_name,
   display_name
-FROM open_images.raw_class_descriptions;
+FROM __DATABASE__.raw_class_descriptions;

@@ -3,11 +3,11 @@
 -- Source: validation-images-with-rotation.csv
 -- Requirement: TBL-01
 
-DROP TABLE IF EXISTS open_images.images;
+DROP TABLE IF EXISTS __DATABASE__.images;
 
-DROP TABLE IF EXISTS open_images.raw_images;
+DROP TABLE IF EXISTS __DATABASE__.raw_images;
 
-CREATE EXTERNAL TABLE open_images.raw_images (
+CREATE EXTERNAL TABLE __DATABASE__.raw_images (
   image_id       STRING,
   subset         STRING,
   original_url   STRING,
@@ -31,7 +31,7 @@ STORED AS TEXTFILE
 LOCATION 's3://__BUCKET__/raw/tables/images/'
 TBLPROPERTIES ('skip.header.line.count' = '1');
 
-CREATE TABLE open_images.images
+CREATE TABLE __DATABASE__.images
 WITH (
   table_type     = 'ICEBERG',
   format         = 'PARQUET',
@@ -51,4 +51,4 @@ SELECT
   original_md5,
   thumbnail_300k_url,
   CAST(rotation AS DOUBLE) AS rotation
-FROM open_images.raw_images;
+FROM __DATABASE__.raw_images;

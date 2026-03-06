@@ -3,11 +3,11 @@
 -- Source: oidv6-validation-annotations-vrd.csv
 -- Requirement: TBL-06
 
-DROP TABLE IF EXISTS open_images.relationships;
+DROP TABLE IF EXISTS __DATABASE__.relationships;
 
-DROP TABLE IF EXISTS open_images.raw_relationships;
+DROP TABLE IF EXISTS __DATABASE__.raw_relationships;
 
-CREATE EXTERNAL TABLE open_images.raw_relationships (
+CREATE EXTERNAL TABLE __DATABASE__.raw_relationships (
   image_id           STRING,
   label_name_1       STRING,
   label_name_2       STRING,
@@ -31,7 +31,7 @@ STORED AS TEXTFILE
 LOCATION 's3://__BUCKET__/raw/tables/relationships/'
 TBLPROPERTIES ('skip.header.line.count' = '1');
 
-CREATE TABLE open_images.relationships
+CREATE TABLE __DATABASE__.relationships
 WITH (
   table_type     = 'ICEBERG',
   format         = 'PARQUET',
@@ -51,4 +51,4 @@ SELECT
   CAST(y_min_2 AS DOUBLE) AS y_min_2,
   CAST(y_max_2 AS DOUBLE) AS y_max_2,
   relationship_label
-FROM open_images.raw_relationships;
+FROM __DATABASE__.raw_relationships;

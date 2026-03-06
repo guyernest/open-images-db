@@ -3,11 +3,11 @@
 -- Source: label_hierarchy.csv (produced by flatten-hierarchy.sh)
 -- Requirement: TBL-07
 
-DROP TABLE IF EXISTS open_images.label_hierarchy;
+DROP TABLE IF EXISTS __DATABASE__.label_hierarchy;
 
-DROP TABLE IF EXISTS open_images.raw_label_hierarchy;
+DROP TABLE IF EXISTS __DATABASE__.raw_label_hierarchy;
 
-CREATE EXTERNAL TABLE open_images.raw_label_hierarchy (
+CREATE EXTERNAL TABLE __DATABASE__.raw_label_hierarchy (
   parent_mid  STRING,
   child_mid   STRING
 )
@@ -21,7 +21,7 @@ STORED AS TEXTFILE
 LOCATION 's3://__BUCKET__/raw/tables/label_hierarchy/'
 TBLPROPERTIES ('skip.header.line.count' = '1');
 
-CREATE TABLE open_images.label_hierarchy
+CREATE TABLE __DATABASE__.label_hierarchy
 WITH (
   table_type     = 'ICEBERG',
   format         = 'PARQUET',
@@ -31,4 +31,4 @@ WITH (
 SELECT
   parent_mid,
   child_mid
-FROM open_images.raw_label_hierarchy;
+FROM __DATABASE__.raw_label_hierarchy;

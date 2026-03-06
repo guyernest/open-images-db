@@ -3,11 +3,11 @@
 -- Source: validation-annotations-bbox.csv
 -- Requirement: TBL-04
 
-DROP TABLE IF EXISTS open_images.bounding_boxes;
+DROP TABLE IF EXISTS __DATABASE__.bounding_boxes;
 
-DROP TABLE IF EXISTS open_images.raw_bounding_boxes;
+DROP TABLE IF EXISTS __DATABASE__.raw_bounding_boxes;
 
-CREATE EXTERNAL TABLE open_images.raw_bounding_boxes (
+CREATE EXTERNAL TABLE __DATABASE__.raw_bounding_boxes (
   image_id      STRING,
   source        STRING,
   label_name    STRING,
@@ -40,7 +40,7 @@ STORED AS TEXTFILE
 LOCATION 's3://__BUCKET__/raw/tables/bounding_boxes/'
 TBLPROPERTIES ('skip.header.line.count' = '1');
 
-CREATE TABLE open_images.bounding_boxes
+CREATE TABLE __DATABASE__.bounding_boxes
 WITH (
   table_type     = 'ICEBERG',
   format         = 'PARQUET',
@@ -61,4 +61,4 @@ SELECT
   CASE WHEN is_group_of  = '1' THEN true ELSE false END AS is_group_of,
   CASE WHEN is_depiction = '1' THEN true ELSE false END AS is_depiction,
   CASE WHEN is_inside    = '1' THEN true ELSE false END AS is_inside
-FROM open_images.raw_bounding_boxes;
+FROM __DATABASE__.raw_bounding_boxes;

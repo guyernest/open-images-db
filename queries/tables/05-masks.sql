@@ -3,11 +3,11 @@
 -- Source: validation-annotations-object-segmentation.csv
 -- Requirement: TBL-05
 
-DROP TABLE IF EXISTS open_images.masks;
+DROP TABLE IF EXISTS __DATABASE__.masks;
 
-DROP TABLE IF EXISTS open_images.raw_masks;
+DROP TABLE IF EXISTS __DATABASE__.raw_masks;
 
-CREATE EXTERNAL TABLE open_images.raw_masks (
+CREATE EXTERNAL TABLE __DATABASE__.raw_masks (
   mask_path      STRING,
   image_id       STRING,
   label_name     STRING,
@@ -31,7 +31,7 @@ TBLPROPERTIES ('skip.header.line.count' = '1');
 
 -- clicks column stored as VARCHAR; future enrichment may convert to JSON
 -- for json_extract queries (TBL-10)
-CREATE TABLE open_images.masks
+CREATE TABLE __DATABASE__.masks
 WITH (
   table_type     = 'ICEBERG',
   format         = 'PARQUET',
@@ -49,4 +49,4 @@ SELECT
   CAST(box_y_max AS DOUBLE)     AS box_y_max,
   CAST(predicted_iou AS DOUBLE) AS predicted_iou,
   clicks
-FROM open_images.raw_masks;
+FROM __DATABASE__.raw_masks;
