@@ -32,11 +32,11 @@ flatten_hierarchy() {
   log_info "Flattening label hierarchy to CSV"
   log_info "============================================"
 
-  # Create temp files
+  # Create temp files (X's must be at end of template on macOS)
   local temp_json
-  temp_json=$(mktemp "${TMPDIR:-/tmp}/hierarchy_XXXXXX.json")
+  temp_json=$(mktemp "${TMPDIR:-/tmp}/hierarchy_json_XXXXXX")
   local temp_csv
-  temp_csv=$(mktemp "${TMPDIR:-/tmp}/hierarchy_XXXXXX.csv")
+  temp_csv=$(mktemp "${TMPDIR:-/tmp}/hierarchy_csv_XXXXXX")
 
   # Ensure cleanup on exit from this function
   trap 'rm -f "$temp_json" "$temp_csv"' RETURN
