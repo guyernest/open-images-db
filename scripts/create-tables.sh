@@ -115,14 +115,14 @@ process_sql_file() {
   local sql_content
   sql_content=$(sed -e "s|__BUCKET__|${bucket}|g" -e "s|__DATABASE__|${ATHENA_DATABASE}|g" "$sql_file")
 
-  # Split on semicolons, trim whitespace, skip empty statements
+  # Split on semicolons, skip chunks that have no actual SQL (only comments/whitespace)
   local IFS=";"
   local statements=()
   for stmt in $sql_content; do
-    # Trim leading/trailing whitespace
-    stmt=$(echo "$stmt" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
-    # Skip empty statements and comment-only blocks
-    if [[ -n "$stmt" ]] && ! echo "$stmt" | grep -qE '^(--.*)?$'; then
+    # Strip comment lines and blank lines, then check if anything remains
+    local stripped
+    stripped=$(echo "$stmt" | grep -v '^[[:space:]]*--' | grep -v '^[[:space:]]*$' | tr -d '[:space:]')
+    if [[ -n "$stripped" ]]; then
       statements+=("$stmt")
     fi
   done

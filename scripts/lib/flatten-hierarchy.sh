@@ -39,7 +39,8 @@ flatten_hierarchy() {
   temp_csv=$(mktemp "${TMPDIR:-/tmp}/hierarchy_csv_XXXXXX")
 
   # Ensure cleanup on exit from this function
-  trap 'rm -f "$temp_json" "$temp_csv"' RETURN
+  # Use double-quotes to eagerly expand paths (locals are gone when trap fires)
+  trap "rm -f '$temp_json' '$temp_csv'" RETURN
 
   # Download hierarchy JSON (reuses common.sh download_file with retry + empty check)
   # Remove the mktemp empty file first — download_file uses curl -z which skips
