@@ -42,6 +42,9 @@ flatten_hierarchy() {
   trap 'rm -f "$temp_json" "$temp_csv"' RETURN
 
   # Download hierarchy JSON (reuses common.sh download_file with retry + empty check)
+  # Remove the mktemp empty file first — download_file uses curl -z which skips
+  # download if file exists (conditional on modification time)
+  rm -f "$temp_json"
   log_info "Downloading hierarchy JSON from $HIERARCHY_URL"
   download_file "$HIERARCHY_URL" "$temp_json"
   log_info "Downloaded hierarchy JSON ($(wc -c < "$temp_json" | tr -d ' ') bytes)"
