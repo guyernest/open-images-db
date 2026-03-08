@@ -9,9 +9,9 @@ Requirements for data quality milestone. Each maps to roadmap phases.
 
 ### Audit
 
-- [ ] **AUDIT-01**: User can see a complete inventory of relationship types in the validation set (e.g., "on", "under", "holds") with counts
-- [ ] **AUDIT-02**: User can see the class hierarchy structure — root nodes, max depth, and parent-child chains
-- [ ] **AUDIT-03**: User can identify which relationships involve which entity classes (e.g., Person-on-Horse)
+- [x] **AUDIT-01**: User can see a complete inventory of relationship types in the validation set (e.g., "on", "under", "holds") with counts
+- [x] **AUDIT-02**: User can see the class hierarchy structure — root nodes, max depth, and parent-child chains
+- [x] **AUDIT-03**: User can identify which relationships involve which entity classes (e.g., Person-on-Horse)
 - [ ] **AUDIT-04**: User can verify that relationship and hierarchy data is discoverable via MCP server queries
 
 ### Data Fixes
@@ -38,9 +38,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUDIT-01 | Phase 6 | Pending |
-| AUDIT-02 | Phase 6 | Pending |
-| AUDIT-03 | Phase 6 | Pending |
+| AUDIT-01 | Phase 6 | Complete |
+| AUDIT-02 | Phase 6 | Complete |
+| AUDIT-03 | Phase 6 | Complete |
 | AUDIT-04 | Phase 8 | Pending |
 | FIX-01 | Phase 7 | Pending |
 | FIX-02 | Phase 7 | Pending |
