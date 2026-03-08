@@ -25,7 +25,7 @@ Phases 1-5 completed. See MILESTONES.md for summary.
 **Milestone Goal:** Audit and fix relationship and hierarchy data so entities and their connections are properly queryable and visible in the MCP server.
 
 - [ ] **Phase 6: Relationship & Hierarchy Audit** - Discover what relationship and hierarchy data exists, its structure, and its gaps
-- [ ] **Phase 7: Query & View Fixes** - Update views and queries so relationships and hierarchies are queryable with human-readable names
+- [x] **Phase 7: Query & View Fixes** - Update views and queries so relationships and hierarchies are queryable with human-readable names (completed 2026-03-08)
 - [ ] **Phase 8: End-to-End Validation** - Verify the fixed data is discoverable and queryable through MCP server patterns
 
 ## Phase Details
@@ -54,7 +54,7 @@ Plans:
   2. User can query any class and navigate up to its ancestors or down to its descendants in the hierarchy
   3. User can find the hierarchy root, query any subtree, and see depth for every node in a single query
   4. All new or modified views/queries are documented with example usage
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 07-01-PLAN.md — Update data pipeline (edge_type) and create hierarchy-aware views
@@ -81,5 +81,5 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 6. Relationship & Hierarchy Audit | v1.1 | 0/2 | Planning complete | - |
-| 7. Query & View Fixes | 1/2 | In Progress|  | - |
+| 7. Query & View Fixes | 2/2 | Complete   | 2026-03-08 | - |
 | 8. End-to-End Validation | v1.1 | 0/? | Not started | - |
