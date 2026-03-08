@@ -16,9 +16,9 @@ Requirements for data quality milestone. Each maps to roadmap phases.
 
 ### Data Fixes
 
-- [ ] **FIX-01**: Views/queries are updated so relationships are queryable with human-readable class names on both sides
-- [ ] **FIX-02**: Views/queries expose hierarchy navigation (ancestors, descendants, depth)
-- [ ] **FIX-03**: Hierarchy root and structure are easy to query (single query for root, depth, subtree)
+- [x] **FIX-01**: Views/queries are updated so relationships are queryable with human-readable class names on both sides
+- [x] **FIX-02**: Views/queries expose hierarchy navigation (ancestors, descendants, depth)
+- [x] **FIX-03**: Hierarchy root and structure are easy to query (single query for root, depth, subtree)
 
 ## Future Requirements
 
@@ -42,9 +42,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIT-02 | Phase 6 | Complete |
 | AUDIT-03 | Phase 6 | Complete |
 | AUDIT-04 | Phase 8 | Pending |
-| FIX-01 | Phase 7 | Pending |
-| FIX-02 | Phase 7 | Pending |
-| FIX-03 | Phase 7 | Pending |
+| FIX-01 | Phase 7 | Complete |
+| FIX-02 | Phase 7 | Complete |
+| FIX-03 | Phase 7 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 7 total

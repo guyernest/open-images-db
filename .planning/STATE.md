@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: Data Quality
 status: executing
 stopped_at: Phase 7 context gathered
-last_updated: "2026-03-08T23:08:27.304Z"
+last_updated: "2026-03-08T23:17:42.969Z"
 last_activity: 2026-03-08 -- 06-01 audit queries and runner created
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 62
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** A fully queryable SQL interface over Open Images V7 annotations via Athena/Iceberg
-**Current focus:** Phase 6: Relationship & Hierarchy Audit
+**Current focus:** Phase 7: Query & View Fixes
 
 ## Current Position
 
-Phase: 6 of 8 (Relationship & Hierarchy Audit) -- first phase of v1.1
-Plan: 1 of 2 in current phase
-Status: Executing phase 6
-Last activity: 2026-03-08 -- 06-01 audit queries and runner created
+Phase: 7 of 8 (Query & View Fixes)
+Plan: 1 of 1 in current phase (complete)
+Status: Executing phase 7
+Last activity: 2026-03-08 -- 07-01 hierarchy views and edge_type pipeline
 
-Progress: [##########..........] 62% (5 of 8 phases complete, v1.0 shipped; 06: 1/2 plans)
+Progress: [████████░░] 75% (07: 1/1 plans complete)
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [##########..........] 62% (5 of 8 phases complete, v1.0 shipped; 06: 
 | 04-views-and-enrichment | 2 | 5min | 2.5min |
 | 05-validation-and-query-surface | 2 | 5min | 2.5min |
 | 06-relationship-hierarchy-audit | 1 | 2min | 2min |
+| 07-query-view-fixes | 1 | 2min | 2min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -56,6 +57,7 @@ Progress: [##########..........] 62% (5 of 8 phases complete, v1.0 shipped; 06: 
 
 *Updated after each plan completion*
 | Phase 06 P02 | 3min | 2 tasks | 2 files |
+| Phase 07 P01 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -70,6 +72,8 @@ Recent decisions affecting current work:
 - [06-01]: Reused create-tables.sh semicolon-splitting pattern for multi-statement audit files
 - [06-01]: 04-dropped-rows-analysis is supplementary (no AUDIT requirement ID)
 - [Phase 06]: Gap classification: source gap, pipeline gap, query gap taxonomy for audit findings
+- [07-01]: Narrowed ancestor CTE seed to relationship MIDs only for performance
+- [07-01]: Used walk-up ancestor pattern (child->parent) for hierarchy_relationships
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-08T23:08:27.301Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-query-view-fixes/07-CONTEXT.md
+Last session: 2026-03-08T23:17:06Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: .planning/phases/07-query-view-fixes/07-01-SUMMARY.md

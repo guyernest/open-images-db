@@ -54,7 +54,7 @@ Plans:
   2. User can query any class and navigate up to its ancestors or down to its descendants in the hierarchy
   3. User can find the hierarchy root, query any subtree, and see depth for every node in a single query
   4. All new or modified views/queries are documented with example usage
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 07-01-PLAN.md — Update data pipeline (edge_type) and create hierarchy-aware views
@@ -81,5 +81,5 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 6. Relationship & Hierarchy Audit | v1.1 | 0/2 | Planning complete | - |
-| 7. Query & View Fixes | v1.1 | 0/2 | Planning complete | - |
+| 7. Query & View Fixes | 1/2 | In Progress|  | - |
 | 8. End-to-End Validation | v1.1 | 0/? | Not started | - |
