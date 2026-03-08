@@ -24,7 +24,10 @@ A fully queryable SQL interface over Open Images annotations — labels, boundin
 
 ### Active
 
-(None — next milestone TBD)
+- [ ] Audit relationship data coverage in validation dataset
+- [ ] Audit entity hierarchy structure (root, depth, queryability)
+- [ ] Fix relationship/hierarchy data so it's properly queryable
+- [ ] Provide good example queries for relationships and hierarchies via MCP server
 
 ### Out of Scope
 
@@ -61,5 +64,15 @@ All 32 v1 requirements validated. Row counts match exactly across all tables.
 | Clicks as VARCHAR not JSON | Semicolon-delimited, not JSON; parsed with split()/cardinality() | Good — matches actual data format |
 | curl over gsutil | Public HTTPS URLs need no GCS auth | Good — simpler prerequisites |
 
+## Current Milestone: v1.1 Data Quality
+
+**Goal:** Audit and fix relationship and hierarchy data so entities and their connections are properly queryable and visible in the MCP server.
+
+**Target features:**
+- Audit relationship data coverage in the validation dataset
+- Audit entity hierarchy structure (root nodes, depth, completeness)
+- Fix data/queries so relationships and hierarchies are easy to discover and query
+- Provide compelling example queries (e.g., "people on horses")
+
 ---
-*Last updated: 2026-03-06 after v1.0 milestone*
+*Last updated: 2026-03-08 after v1.1 milestone start*
