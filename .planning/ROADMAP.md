@@ -39,11 +39,11 @@ Phases 1-5 completed. See MILESTONES.md for summary.
   2. User can run a query that shows the class hierarchy from root to leaves, with depth and parent-child chains
   3. User can run a query that shows which entity class pairs participate in each relationship type (e.g., Person-on-Horse: 47 instances)
   4. An audit report documents coverage numbers, structural findings, and any data gaps or anomalies discovered
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — Create audit SQL queries and runner script
+- [ ] 06-02-PLAN.md — Execute audit and produce findings report
 
 ### Phase 7: Query & View Fixes
 **Goal**: Relationships and hierarchies are queryable through views with human-readable class names, navigation, and structure
@@ -80,6 +80,6 @@ Phases execute in numeric order: 6 -> 7 -> 8
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 6. Relationship & Hierarchy Audit | v1.1 | 0/? | Not started | - |
+| 6. Relationship & Hierarchy Audit | v1.1 | 0/2 | Planning complete | - |
 | 7. Query & View Fixes | v1.1 | 0/? | Not started | - |
 | 8. End-to-End Validation | v1.1 | 0/? | Not started | - |
