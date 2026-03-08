@@ -54,11 +54,11 @@ Plans:
   2. User can query any class and navigate up to its ancestors or down to its descendants in the hierarchy
   3. User can find the hierarchy root, query any subtree, and see depth for every node in a single query
   4. All new or modified views/queries are documented with example usage
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md — Update data pipeline (edge_type) and create hierarchy-aware views
+- [ ] 07-02-PLAN.md — Create example query files documenting new views
 
 ### Phase 8: End-to-End Validation
 **Goal**: The fixed relationship and hierarchy data is verified as discoverable and useful through queries that an MCP server would execute
@@ -81,5 +81,5 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 6. Relationship & Hierarchy Audit | v1.1 | 0/2 | Planning complete | - |
-| 7. Query & View Fixes | v1.1 | 0/? | Not started | - |
+| 7. Query & View Fixes | v1.1 | 0/2 | Planning complete | - |
 | 8. End-to-End Validation | v1.1 | 0/? | Not started | - |
