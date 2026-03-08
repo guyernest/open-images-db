@@ -74,70 +74,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# -----------------------------------------------------------------------------
-# Process a single SQL file: split on semicolons, execute each statement
-# Args: $1 = SQL file path, $2 = bucket name
-# Returns: 0 if all statements succeed, 1 if any fail
-# -----------------------------------------------------------------------------
-
-process_sql_file() {
-  local sql_file="$1"
-  local bucket="$2"
-  local filename
-  filename=$(basename "$sql_file" .sql)
-  local file_errors=0
-  local stmt_count=0
-
-  log_info "--------------------------------------------"
-  log_info "Processing: $filename"
-  log_info "--------------------------------------------"
-
-  # Read the file, substitute placeholders, and strip comment-only lines
-  # (comments before first semicolon would otherwise attach to first statement)
-  local sql_content
-  sql_content=$(sed -e "s|__BUCKET__|${bucket}|g" -e "s|__DATABASE__|${ATHENA_DATABASE}|g" -e '/^[[:space:]]*--/d' "$sql_file")
-
-  # Split on semicolons, skip chunks that have no actual SQL (only comments/whitespace)
-  local IFS=";"
-  local statements=()
-  for stmt in $sql_content; do
-    # Strip comment lines and blank lines, then check if anything remains
-    local stripped
-    stripped=$(echo "$stmt" | grep -v '^[[:space:]]*--' | grep -v '^[[:space:]]*$' | tr -d '[:space:]')
-    if [[ -n "$stripped" ]]; then
-      statements+=("$stmt")
-    fi
-  done
-  unset IFS
-
-  local total=${#statements[@]}
-  if [[ $total -eq 0 ]]; then
-    log_warn "No SQL statements found in $filename"
-    return 0
-  fi
-
-  log_info "Found $total statement(s) in $filename"
-
-  for stmt in "${statements[@]}"; do
-    stmt_count=$((stmt_count + 1))
-
-    # Build a description from the first meaningful line
-    local desc
-    desc=$(echo "$stmt" | grep -v '^--' | grep -v '^$' | head -1 | sed 's/[[:space:]]*$//' | cut -c1-80)
-
-    if ! run_athena_query "$stmt" "$filename [$stmt_count/$total]: $desc"; then
-      file_errors=$((file_errors + 1))
-    fi
-  done
-
-  if [[ $file_errors -gt 0 ]]; then
-    log_error "$filename: $file_errors of $total statements failed"
-    return 1
-  fi
-
-  log_info "$filename: all $total statements succeeded"
-  return 0
-}
+# process_sql_file is now in lib/athena.sh (shared with run-audit.sh)
 
 # -----------------------------------------------------------------------------
 # Main execution

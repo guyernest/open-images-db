@@ -11,8 +11,8 @@ SELECT
 FROM __DATABASE__.label_hierarchy h
 LEFT JOIN __DATABASE__.class_descriptions cd
   ON h.parent_mid = cd.label_name
-WHERE h.parent_mid NOT IN (
-  SELECT child_mid FROM __DATABASE__.label_hierarchy
+WHERE NOT EXISTS (
+  SELECT 1 FROM __DATABASE__.label_hierarchy c WHERE c.child_mid = h.parent_mid
 )
 GROUP BY h.parent_mid, cd.display_name
 ORDER BY root_display_name;
@@ -22,8 +22,8 @@ ORDER BY root_display_name;
 WITH RECURSIVE roots(mid) AS (
   SELECT DISTINCT parent_mid AS mid
   FROM __DATABASE__.label_hierarchy
-  WHERE parent_mid NOT IN (
-    SELECT child_mid FROM __DATABASE__.label_hierarchy
+  WHERE NOT EXISTS (
+    SELECT 1 FROM __DATABASE__.label_hierarchy c WHERE c.child_mid = parent_mid
   )
 ),
 tree(mid, depth) AS (
@@ -44,8 +44,8 @@ FROM tree;
 WITH RECURSIVE roots(mid) AS (
   SELECT DISTINCT parent_mid AS mid
   FROM __DATABASE__.label_hierarchy
-  WHERE parent_mid NOT IN (
-    SELECT child_mid FROM __DATABASE__.label_hierarchy
+  WHERE NOT EXISTS (
+    SELECT 1 FROM __DATABASE__.label_hierarchy c WHERE c.child_mid = parent_mid
   )
 ),
 tree(mid, parent_mid, depth) AS (

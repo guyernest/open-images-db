@@ -112,3 +112,72 @@ athena_query_scalar() {
 
   echo "$result"
 }
+
+# -----------------------------------------------------------------------------
+# Process a SQL file: substitute placeholders, split on semicolons, execute each
+# LIMITATION: SQL statements must not contain semicolons in string literals or
+# inline comments -- the naive semicolon splitter will break them.
+# Args: $1 = SQL file path, $2 = bucket name (optional, empty string to skip)
+# Returns: 0 if all statements succeed, 1 if any fail
+# -----------------------------------------------------------------------------
+
+process_sql_file() {
+  local sql_file="$1"
+  local bucket="${2:-}"
+  local filename
+  filename=$(basename "$sql_file" .sql)
+  local file_errors=0
+  local stmt_count=0
+
+  log_info "--------------------------------------------"
+  log_info "Processing: $filename"
+  log_info "--------------------------------------------"
+
+  # Read the file, substitute placeholders, strip comment-only lines
+  local sed_args=(-e "s|__DATABASE__|${ATHENA_DATABASE}|g" -e '/^[[:space:]]*--/d')
+  if [[ -n "$bucket" ]]; then
+    sed_args+=(-e "s|__BUCKET__|${bucket}|g")
+  fi
+  local sql_content
+  sql_content=$(sed "${sed_args[@]}" "$sql_file")
+
+  # Split on semicolons, skip chunks that have no actual SQL
+  local IFS=";"
+  local statements=()
+  for stmt in $sql_content; do
+    local stripped
+    stripped=$(echo "$stmt" | grep -v '^[[:space:]]*$' | tr -d '[:space:]')
+    if [[ -n "$stripped" ]]; then
+      statements+=("$stmt")
+    fi
+  done
+  unset IFS
+
+  local total=${#statements[@]}
+  if [[ $total -eq 0 ]]; then
+    log_warn "No SQL statements found in $filename"
+    return 0
+  fi
+
+  log_info "Found $total statement(s) in $filename"
+
+  for stmt in "${statements[@]}"; do
+    stmt_count=$((stmt_count + 1))
+
+    # Build a description from the first meaningful line
+    local desc
+    desc=$(echo "$stmt" | grep -v '^--' | grep -v '^$' | head -1 | sed 's/[[:space:]]*$//' | cut -c1-80)
+
+    if ! run_athena_query "$stmt" "$filename [$stmt_count/$total]: $desc"; then
+      file_errors=$((file_errors + 1))
+    fi
+  done
+
+  if [[ $file_errors -gt 0 ]]; then
+    log_error "$filename: $file_errors of $total statements failed"
+    return 1
+  fi
+
+  log_info "$filename: all $total statements succeeded"
+  return 0
+}
