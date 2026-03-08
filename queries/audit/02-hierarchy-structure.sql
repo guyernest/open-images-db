@@ -18,14 +18,15 @@ GROUP BY h.parent_mid, cd.display_name
 ORDER BY root_display_name;
 
 -- Query 2: Max depth via recursive CTE
-WITH RECURSIVE roots AS (
+-- Note: Athena requires column aliases on recursive CTE definitions
+WITH RECURSIVE roots(mid) AS (
   SELECT DISTINCT parent_mid AS mid
   FROM __DATABASE__.label_hierarchy
   WHERE parent_mid NOT IN (
     SELECT child_mid FROM __DATABASE__.label_hierarchy
   )
 ),
-tree AS (
+tree(mid, depth) AS (
   SELECT mid, 0 AS depth
   FROM roots
   UNION ALL
@@ -39,14 +40,15 @@ SELECT MAX(depth) AS max_depth
 FROM tree;
 
 -- Query 3: Full hierarchy traversal from roots to leaves
-WITH RECURSIVE roots AS (
+-- Note: Athena requires column aliases on recursive CTE definitions
+WITH RECURSIVE roots(mid) AS (
   SELECT DISTINCT parent_mid AS mid
   FROM __DATABASE__.label_hierarchy
   WHERE parent_mid NOT IN (
     SELECT child_mid FROM __DATABASE__.label_hierarchy
   )
 ),
-tree AS (
+tree(mid, parent_mid, depth) AS (
   SELECT
     mid,
     CAST(NULL AS VARCHAR) AS parent_mid,
