@@ -4,7 +4,7 @@
 #
 # Downloads the bbox_labels_600_hierarchy.json from Google Storage and uses
 # jq recursive descent to extract all parent-child edges from both
-# Subcategory and Part arrays. Outputs a CSV with header: parent_mid,child_mid
+# Subcategory and Part arrays. Outputs a CSV with header: parent_mid,child_mid,edge_type
 #
 # Uploads result to s3://BUCKET/raw/tables/label_hierarchy/label_hierarchy.csv
 #
@@ -55,12 +55,12 @@ flatten_hierarchy() {
   log_info "Extracting parent-child edges with jq..."
 
   {
-    echo "parent_mid,child_mid"
+    echo "parent_mid,child_mid,edge_type"
     jq -r '
       def edges:
         .LabelName as $parent |
-        ((.Subcategory // [])[] | "\($parent),\(.LabelName)", edges),
-        ((.Part // [])[] | "\($parent),\(.LabelName)", edges);
+        ((.Subcategory // [])[] | "\($parent),\(.LabelName),subcategory", edges),
+        ((.Part // [])[] | "\($parent),\(.LabelName),part", edges);
       edges
     ' "$temp_json"
   } > "$temp_csv" || {

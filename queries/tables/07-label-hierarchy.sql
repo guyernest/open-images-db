@@ -1,5 +1,5 @@
 -- 07-label-hierarchy.sql
--- Table: label_hierarchy (2 columns, from flattened CSV)
+-- Table: label_hierarchy (3 columns, from flattened CSV)
 -- Source: label_hierarchy.csv (produced by flatten-hierarchy.sh)
 -- Requirement: TBL-07
 
@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS __DATABASE__.raw_label_hierarchy;
 
 CREATE EXTERNAL TABLE __DATABASE__.raw_label_hierarchy (
   parent_mid  STRING,
-  child_mid   STRING
+  child_mid   STRING,
+  edge_type   STRING
 )
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 WITH SERDEPROPERTIES (
@@ -31,5 +32,6 @@ WITH (
 ) AS
 SELECT
   parent_mid,
-  child_mid
+  child_mid,
+  edge_type
 FROM __DATABASE__.raw_label_hierarchy;
