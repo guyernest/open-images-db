@@ -68,10 +68,11 @@ Plans:
   1. A set of example queries demonstrates real-world MCP server usage patterns (e.g., "find images of people on horses", "what categories exist under Animal")
   2. Every example query returns correct, non-empty results with human-readable output
   3. User can verify that relationship and hierarchy data round-trips correctly from raw tables through views to query results
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 08-01: TBD
+- [ ] 08-01-PLAN.md — Create MCP reference resource and new example queries
+- [ ] 08-02-PLAN.md — Create validation script, run validation, produce report
 
 ## Progress
 
@@ -82,4 +83,4 @@ Phases execute in numeric order: 6 -> 7 -> 8
 |-------|-----------|----------------|--------|-----------|
 | 6. Relationship & Hierarchy Audit | v1.1 | 0/2 | Planning complete | - |
 | 7. Query & View Fixes | 2/2 | Complete   | 2026-03-08 | - |
-| 8. End-to-End Validation | v1.1 | 0/? | Not started | - |
+| 8. End-to-End Validation | v1.1 | 0/2 | Planning complete | - |
