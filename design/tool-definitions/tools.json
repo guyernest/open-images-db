@@ -2,34 +2,34 @@
   "tools": [
     {
       "name": "find_images",
-      "description": "Search for images by entity class, relationship, or free text. Decompose the user's request into structured arguments when possible: subject ('Person'), object ('Horse'), relationship ('ride'). Use singular capitalized class names matching the dataset hierarchy (e.g., 'Person' not 'people', 'Horse' not 'horses', 'Dog' not 'dogs'). If unsure of the exact class name, call resolve_entity first. Common top-level classes: Person, Animal, Vehicle, Food, Clothing, Furniture, Musical instrument, Sports equipment, Tool, Weapon.",
+      "description": "Search for images in the Open Images dataset. Decompose the user's request into structured arguments — all arguments are optional, use only what applies:\n\n• subject only: 'show me dogs' → { subject: 'Dog' }\n• subject + relationship: 'dogs playing' → { subject: 'Dog', relationship: 'plays' }\n• subject + relationship + object: 'person riding horse' → { subject: 'Person', relationship: 'ride', object: 'Horse' }\n• query only (fallback): 'outdoor scenes' → { query: 'outdoor scenes' }\n\nUse singular capitalized class names (Person not people, Horse not horses). If unsure of the exact name, call resolve_entity first. Common classes: Person, Animal, Dog, Cat, Car, Food, Clothing, Furniture.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "subject": {
             "type": "string",
-            "description": "Primary entity class in singular capitalized form. Use hierarchy parent names for broad searches (e.g., 'Person' matches Man/Woman/Boy/Girl, 'Animal' matches all animals). Examples: 'Person', 'Dog', 'Car', 'Guitar'."
+            "description": "Primary entity to search for. Singular capitalized form matching the dataset hierarchy. Parent names match all children (e.g., 'Person' matches Man/Woman/Boy/Girl, 'Animal' matches all animals). Omit only when using the query fallback."
           },
           "object": {
             "type": "string",
-            "description": "Secondary entity involved in a relationship with the subject. Same naming rules as subject. Example: subject='Person', relationship='ride', object='Horse'."
+            "description": "Second entity in a relationship with the subject. Omit when the user is not describing a relationship between two things (e.g., 'show me dogs' has no object; 'person riding horse' has object='Horse'). Same naming rules as subject."
           },
           "relationship": {
             "type": "string",
-            "description": "Relationship type connecting subject and object. Lowercase. Common values: ride, on, wears, holds, at, contain, plays, hang, interacts_with, inside_of. 'is' (attributes) is excluded by default."
+            "description": "How subject relates to object. Lowercase. Omit when the user just wants images of an entity without a specific relationship. Common values: ride, on, wears, holds, at, contain, plays, hang, interacts_with, inside_of. The 'is' type (attributes like 'Man is Standing') is excluded by default."
           },
           "query": {
             "type": "string",
-            "description": "Free-text fallback when the request doesn't decompose into subject/object/relationship. The server will attempt to interpret it. Prefer structured arguments when possible."
+            "description": "Free-text fallback for requests that don't decompose into subject/object/relationship (e.g., 'outdoor scenes with bright colors', 'busy street'). Prefer structured arguments when the request mentions identifiable entities or relationships."
           },
           "limit": {
             "type": "number",
             "default": 20,
-            "description": "Maximum number of images to return per page (1-50)"
+            "description": "Maximum images per page (1-50)"
           },
           "min_confidence": {
             "type": "number",
-            "description": "Minimum confidence threshold for label matches (0.0-1.0). Omit for all confidence levels."
+            "description": "Minimum label confidence (0.0-1.0). Omit for all confidence levels."
           }
         },
         "required": []
