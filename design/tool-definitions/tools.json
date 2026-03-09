@@ -1,0 +1,583 @@
+{
+  "tools": [
+    {
+      "name": "find_images",
+      "description": "Search for images by class name, object type, or natural language description. Use this for initial queries. Returns a visual grid.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural language search query or class name (e.g., 'dogs', 'person riding horse', 'musical instruments')"
+          },
+          "limit": {
+            "type": "number",
+            "default": 20,
+            "description": "Maximum number of images to return per page (1-50)"
+          },
+          "relationship": {
+            "type": "string",
+            "description": "Optional relationship filter to narrow results (e.g., 'ride', 'wears', 'holds'). Excludes 'is' by default."
+          },
+          "min_confidence": {
+            "type": "number",
+            "description": "Minimum confidence threshold for label matches (0.0-1.0). Omit for all confidence levels."
+          }
+        },
+        "required": ["query"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Three-layer response: structuredContent for model-readable summary, content for conversation text, _meta for widget-exclusive data",
+        "properties": {
+          "structuredContent": {
+            "type": "object",
+            "description": "Model-readable structured summary of search results. Rendered as the widget's primary data source.",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Echo of the original search query for display and re-query"
+              },
+              "total_results": {
+                "type": "number",
+                "description": "Total number of matching images across all pages"
+              },
+              "page": {
+                "type": "number",
+                "description": "Current page number (1-indexed)"
+              },
+              "facets": {
+                "type": "object",
+                "description": "Available narrowing dimensions derived from result set",
+                "properties": {
+                  "categories": {
+                    "type": "array",
+                    "description": "Subcategories from class_hierarchy children of the matched class. Each entry has name and count.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "count": { "type": "number" }
+                      }
+                    }
+                  },
+                  "relationships": {
+                    "type": "array",
+                    "description": "Relationship types present in results, excluding 'is' by default. Each entry has label and count.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": { "type": "string" },
+                        "count": { "type": "number" }
+                      }
+                    }
+                  },
+                  "confidence_ranges": {
+                    "type": "array",
+                    "description": "Distribution of confidence scores across results for filter suggestions",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "range": { "type": "string", "description": "e.g., '0.9-1.0', '0.7-0.9'" },
+                        "count": { "type": "number" }
+                      }
+                    }
+                  }
+                }
+              },
+              "summary": {
+                "type": "string",
+                "description": "Human-readable one-line summary (e.g., '523 dog images found across 12 breeds')"
+              }
+            }
+          },
+          "content": {
+            "type": "array",
+            "description": "Conversation text describing results with narrowing suggestions. Shown in the chat as the model's response.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "text" },
+                "text": {
+                  "type": "string",
+                  "description": "Natural language description of results including counts, top categories, and suggested refinements"
+                }
+              }
+            }
+          },
+          "_meta": {
+            "type": "object",
+            "description": "Widget-exclusive data not shown in conversation text. Passed to the widget iframe for rendering.",
+            "properties": {
+              "images": {
+                "type": "array",
+                "description": "Image result set for the current page",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "description": "Open Images image_id" },
+                    "thumbnail_300k_url": { "type": "string", "description": "URL to ~300KB thumbnail for display" },
+                    "labels": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Human-readable label names for this image"
+                    },
+                    "confidence": { "type": "number", "description": "Highest confidence score among matching labels" },
+                    "has_boxes": { "type": "boolean", "description": "Whether bounding box annotations exist" },
+                    "has_relationships": { "type": "boolean", "description": "Whether relationship annotations exist" }
+                  }
+                }
+              },
+              "hierarchy_context": {
+                "type": "object",
+                "description": "Position in the class hierarchy for the queried class",
+                "properties": {
+                  "path": { "type": "string", "description": "Root path from class_hierarchy (e.g., 'Entity > Animal > Carnivore > Dog')" },
+                  "children": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Direct subcategories available for drill-down"
+                  },
+                  "depth": { "type": "number", "description": "Current depth in hierarchy (0=Entity root)" }
+                }
+              },
+              "query_metadata": {
+                "type": "object",
+                "description": "Execution metadata for debugging and performance monitoring",
+                "properties": {
+                  "sql_views_used": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Which SQL views were queried (e.g., 'labeled_images', 'class_hierarchy')"
+                  },
+                  "execution_time_ms": { "type": "number", "description": "Server-side query execution time in milliseconds" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://widgets/results-grid.html",
+          "visibility": ["model", "app"]
+        }
+      }
+    },
+    {
+      "name": "narrow_results",
+      "description": "Refine the current search results by adding filters. Called by the widget directly -- do not call this from conversation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "previous_query": {
+            "type": "string",
+            "description": "The original search query being refined"
+          },
+          "filter": {
+            "type": "string",
+            "description": "Filter expression. Supports: 'category:Poodle' (class filter), 'relationship:ride' (relationship type), 'confidence:>0.8' (threshold), or free text for additional search terms."
+          },
+          "page": {
+            "type": "number",
+            "default": 1,
+            "description": "Page number for pagination (1-indexed)"
+          },
+          "limit": {
+            "type": "number",
+            "default": 20,
+            "description": "Maximum number of images per page (1-50)"
+          }
+        },
+        "required": ["previous_query", "filter"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Same three-layer structure as find_images. The widget re-renders in place with filtered results.",
+        "properties": {
+          "structuredContent": {
+            "type": "object",
+            "description": "Updated structured summary reflecting applied filters",
+            "properties": {
+              "query": { "type": "string" },
+              "total_results": { "type": "number" },
+              "page": { "type": "number" },
+              "facets": {
+                "type": "object",
+                "properties": {
+                  "categories": { "type": "array", "items": { "type": "object" } },
+                  "relationships": { "type": "array", "items": { "type": "object" } },
+                  "confidence_ranges": { "type": "array", "items": { "type": "object" } }
+                }
+              },
+              "applied_filters": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "List of currently active filters for display as removable chips"
+              },
+              "summary": { "type": "string" }
+            }
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "text" },
+                "text": { "type": "string" }
+              }
+            }
+          },
+          "_meta": {
+            "type": "object",
+            "properties": {
+              "images": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "thumbnail_300k_url": { "type": "string" },
+                    "labels": { "type": "array", "items": { "type": "string" } },
+                    "confidence": { "type": "number" },
+                    "has_boxes": { "type": "boolean" },
+                    "has_relationships": { "type": "boolean" }
+                  }
+                }
+              },
+              "hierarchy_context": {
+                "type": "object",
+                "properties": {
+                  "path": { "type": "string" },
+                  "children": { "type": "array", "items": { "type": "string" } },
+                  "depth": { "type": "number" }
+                }
+              },
+              "query_metadata": {
+                "type": "object",
+                "properties": {
+                  "sql_views_used": { "type": "array", "items": { "type": "string" } },
+                  "execution_time_ms": { "type": "number" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://widgets/results-grid.html",
+          "visibility": ["app"]
+        }
+      }
+    },
+    {
+      "name": "get_image_details",
+      "description": "Get full details for a single image including all annotations, bounding boxes, relationships, and metadata.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "image_id": {
+            "type": "string",
+            "description": "Open Images image identifier (e.g., '000a1249af2bc5f0')"
+          }
+        },
+        "required": ["image_id"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Three-layer response with complete image annotations and navigation actions",
+        "properties": {
+          "structuredContent": {
+            "type": "object",
+            "description": "Core image data visible to the model for conversation context",
+            "properties": {
+              "image_id": { "type": "string" },
+              "thumbnail_300k_url": { "type": "string", "description": "Display-ready thumbnail URL" },
+              "original_url": { "type": "string", "description": "Full resolution image URL" },
+              "metadata": {
+                "type": "object",
+                "description": "Image metadata from the images table",
+                "properties": {
+                  "author": { "type": "string" },
+                  "license": { "type": "string" },
+                  "title": { "type": "string", "description": "Image title (may be null)" },
+                  "rotation": { "type": "number", "description": "EXIF rotation in degrees" },
+                  "original_size": { "type": "number", "description": "Original file size in bytes" }
+                }
+              }
+            }
+          },
+          "content": {
+            "type": "array",
+            "description": "Natural language description of the image contents synthesized from annotations",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "text" },
+                "text": {
+                  "type": "string",
+                  "description": "Describes what is in the image: objects, relationships, and scene composition"
+                }
+              }
+            }
+          },
+          "_meta": {
+            "type": "object",
+            "description": "Complete annotation data for the widget to render overlays and panels",
+            "properties": {
+              "labels": {
+                "type": "array",
+                "description": "All image-level labels with source and confidence",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": { "type": "string" },
+                    "source": { "type": "string", "description": "'verification' (human) or 'machine'" },
+                    "confidence": { "type": "number" }
+                  }
+                }
+              },
+              "boxes": {
+                "type": "array",
+                "description": "Bounding box annotations for rendering overlays on the image",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": { "type": "string" },
+                    "coordinates": {
+                      "type": "object",
+                      "properties": {
+                        "x_min": { "type": "number" },
+                        "y_min": { "type": "number" },
+                        "x_max": { "type": "number" },
+                        "y_max": { "type": "number" }
+                      },
+                      "description": "Normalized coordinates (0.0-1.0)"
+                    },
+                    "confidence": { "type": "number" },
+                    "is_occluded": { "type": "boolean" },
+                    "is_truncated": { "type": "boolean" },
+                    "is_group_of": { "type": "boolean" },
+                    "is_depiction": { "type": "boolean" }
+                  }
+                }
+              },
+              "relationships": {
+                "type": "array",
+                "description": "Visual relationships between objects in the image",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "display_name_1": { "type": "string", "description": "Subject entity" },
+                    "relationship_label": { "type": "string", "description": "Relationship type (e.g., 'ride', 'on', 'wears')" },
+                    "display_name_2": { "type": "string", "description": "Object entity" },
+                    "subject_box": {
+                      "type": "object",
+                      "properties": {
+                        "x_min": { "type": "number" },
+                        "y_min": { "type": "number" },
+                        "x_max": { "type": "number" },
+                        "y_max": { "type": "number" }
+                      }
+                    },
+                    "object_box": {
+                      "type": "object",
+                      "properties": {
+                        "x_min": { "type": "number" },
+                        "y_min": { "type": "number" },
+                        "x_max": { "type": "number" },
+                        "y_max": { "type": "number" }
+                      }
+                    }
+                  }
+                }
+              },
+              "masks": {
+                "type": "array",
+                "description": "Segmentation masks available for this image",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "display_name": { "type": "string" },
+                    "mask_path": { "type": "string", "description": "S3 path to segmentation mask PNG" },
+                    "predicted_iou": { "type": "number", "description": "Quality score for the mask" }
+                  }
+                }
+              },
+              "navigate_actions": {
+                "type": "object",
+                "description": "Pre-computed navigation suggestions for 'explore from this image' actions",
+                "properties": {
+                  "more_like_this": {
+                    "type": "string",
+                    "description": "Query to find visually similar images (primary label as search term)"
+                  },
+                  "same_objects": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Queries to find images with the same objects"
+                  },
+                  "same_relationships": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Queries to find images with the same relationship patterns"
+                  },
+                  "same_category": {
+                    "type": "string",
+                    "description": "Query to browse the parent category of the primary object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://widgets/image-detail.html",
+          "visibility": ["model", "app"]
+        }
+      }
+    },
+    {
+      "name": "explore_category",
+      "description": "Browse the class hierarchy tree starting from a category. Shows subcategories, sample images, and available relationships.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "class_name": {
+            "type": "string",
+            "description": "Human-readable class name to explore (e.g., 'Animal', 'Dog', 'Vehicle'). Uses display_name, not MID."
+          },
+          "depth": {
+            "type": "number",
+            "default": 2,
+            "description": "How many hierarchy levels below the class to include (1-5)"
+          },
+          "include_samples": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to include sample thumbnail images for each subcategory"
+          }
+        },
+        "required": ["class_name"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Three-layer response with hierarchy tree data and sample images",
+        "properties": {
+          "structuredContent": {
+            "type": "object",
+            "description": "Hierarchy summary visible to the model for guiding exploration",
+            "properties": {
+              "class_name": { "type": "string", "description": "The explored class" },
+              "root_path": { "type": "string", "description": "Full path from Entity root (e.g., 'Entity > Animal > Carnivore > Dog')" },
+              "depth": { "type": "number", "description": "Number of levels shown below the class" },
+              "child_count": { "type": "number", "description": "Total number of direct children" },
+              "edge_type": { "type": "string", "description": "'subcategory' or 'part'" }
+            }
+          },
+          "content": {
+            "type": "array",
+            "description": "Natural language description of the category with subcategories and relationship context",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": { "type": "string", "const": "text" },
+                "text": {
+                  "type": "string",
+                  "description": "Description like 'Dog is under Entity > Animal > Carnivore with 15 subcategories including Poodle, German shepherd...'"
+                }
+              }
+            }
+          },
+          "_meta": {
+            "type": "object",
+            "description": "Full hierarchy tree and sample images for the widget to render",
+            "properties": {
+              "hierarchy_tree": {
+                "type": "object",
+                "description": "Recursive tree structure for rendering as collapsible tree",
+                "properties": {
+                  "name": { "type": "string" },
+                  "mid": { "type": "string", "description": "MID identifier for this class" },
+                  "depth": { "type": "number" },
+                  "edge_type": { "type": "string" },
+                  "is_leaf": { "type": "boolean" },
+                  "children": {
+                    "type": "array",
+                    "description": "Recursive children, each with the same structure",
+                    "items": { "$ref": "#" }
+                  },
+                  "sample_count": { "type": "number", "description": "Number of images with this label in the dataset" }
+                }
+              },
+              "relationship_summary": {
+                "type": "array",
+                "description": "Relationships involving this class or its descendants, excluding 'is'",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "relationship_label": { "type": "string" },
+                    "count": { "type": "number" }
+                  }
+                }
+              },
+              "sample_images": {
+                "type": "array",
+                "description": "3-5 sample thumbnails per subcategory (when include_samples is true)",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "thumbnail_300k_url": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://widgets/hierarchy-browser.html",
+          "visibility": ["model", "app"]
+        }
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "name": "start_code_mode",
+      "description": "Switch to code mode for advanced SQL queries against the Open Images database. Loads the schema reference and enables SQL generation for queries that go beyond the standard tools.",
+      "arguments": [],
+      "resource_context": {
+        "uri": "resource://queries/examples/00-mcp-reference.sql",
+        "description": "Complete schema reference with table/view definitions, common values, query patterns, and known pitfalls"
+      },
+      "instructions": {
+        "dialect": "Athena/Trino SQL",
+        "database_placeholder": "__DATABASE__",
+        "database_name": "open_images",
+        "rules": [
+          "Replace __DATABASE__ with open_images in all generated queries",
+          "Use Athena/Trino SQL dialect (e.g., LIMIT not TOP, double quotes for identifiers)",
+          "Prefer views (labeled_images, labeled_boxes, labeled_masks, labeled_relationships, class_hierarchy, hierarchy_relationships) over base tables for human-readable names",
+          "Use hierarchy_relationships with ancestor_name for parent-class queries (e.g., ancestor_name_1 = 'Person' matches Man, Woman, Boy, Girl)",
+          "Never query relationships by parent class using display_name_1 directly -- use ancestor_name_1 from hierarchy_relationships",
+          "Filter out 'is' relationship type by default unless the user specifically asks about attributes/states",
+          "Use display_name columns (not label_name/MID) in WHERE clauses and output",
+          "The 'clicks' column in masks is VARCHAR (semicolon-delimited), not JSON -- use split(clicks, ';') and cardinality()"
+        ],
+        "pitfalls": [
+          "MIDs vs display_name: label_name contains MIDs like /m/04yx4, not human-readable names. Always JOIN class_descriptions or use views.",
+          "'is' dominance: 81.8% of relationships are 'is' type (attributes). Filter with WHERE relationship_label != 'is' for action/spatial relationships.",
+          "Leaf-only relationships: The relationships table only contains leaf classes (Man, Woman, Dog). To query by parent class (Person, Animal), use hierarchy_relationships view with ancestor_name columns.",
+          "INNER JOIN drops: Views using INNER JOIN with class_descriptions drop ~3.3% of rows. All dropped rows are 'is' type relationships.",
+          "edge_type: Some classes appear under multiple parents with different edge_types ('subcategory' vs 'part'). Filter on edge_type if needed."
+        ]
+      }
+    }
+  ]
+}
