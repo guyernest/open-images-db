@@ -12,6 +12,11 @@ roots(mid) AS (
     SELECT 1 FROM __DATABASE__.label_hierarchy c WHERE c.child_mid = lh.parent_mid
   )
 ),
+-- Supplement class_descriptions with known root MID that lacks an entry.
+-- COALESCE ordering (cd before rl) ensures class_descriptions wins if the row is ever added.
+root_labels(label_name, display_name) AS (
+  SELECT * FROM (VALUES ('/m/0bl9f', 'Entity')) AS t(label_name, display_name)
+),
 tree(mid, parent_mid, depth, edge_type, root_path) AS (
   -- Base case: root nodes (no parent edge)
   SELECT
@@ -19,9 +24,10 @@ tree(mid, parent_mid, depth, edge_type, root_path) AS (
     CAST(NULL AS VARCHAR) AS parent_mid,
     0 AS depth,
     CAST(NULL AS VARCHAR) AS edge_type,
-    COALESCE(cd.display_name, r.mid) AS root_path
+    COALESCE(cd.display_name, rl.display_name, r.mid) AS root_path
   FROM roots r
   LEFT JOIN __DATABASE__.class_descriptions cd ON r.mid = cd.label_name
+  LEFT JOIN root_labels rl ON r.mid = rl.label_name
 
   UNION ALL
 
@@ -39,9 +45,9 @@ tree(mid, parent_mid, depth, edge_type, root_path) AS (
 )
 SELECT
   t.mid,
-  COALESCE(cd.display_name, t.mid) AS display_name,
+  COALESCE(cd.display_name, rl.display_name, t.mid) AS display_name,
   t.parent_mid,
-  COALESCE(pcd.display_name, t.parent_mid) AS parent_name,
+  COALESCE(pcd.display_name, prl.display_name, t.parent_mid) AS parent_name,
   t.depth,
   t.edge_type,
   t.root_path,
@@ -50,5 +56,7 @@ SELECT
   ) AS is_leaf
 FROM tree t
 LEFT JOIN __DATABASE__.class_descriptions cd ON t.mid = cd.label_name
+LEFT JOIN root_labels rl ON t.mid = rl.label_name
 LEFT JOIN __DATABASE__.class_descriptions pcd ON t.parent_mid = pcd.label_name
+LEFT JOIN root_labels prl ON t.parent_mid = prl.label_name
 ORDER BY t.depth, cd.display_name;
