@@ -33,14 +33,34 @@ Example: User types "I need photos of people riding horses"
 | Step | Actor | Action | Data | Next |
 |------|-------|--------|------|------|
 | 1 | **User** | Types "I need photos of people riding horses" in conversation | Free-text input | Step 2 |
-| 2 | **LLM** | Interprets intent. Identifies: subject="Person" (parent class), object="Horse", relationship="ride". Calls `find_images` with appropriate parameters. | `{ query: "people riding horses", relationship: "ride" }` | Step 3 |
-| 3 | **MCP Server** | Uses `hierarchy_relationships` view with `ancestor_name_1='Person'` and `ancestor_name_2='Horse'` and `relationship_label IN ('ride', 'on', 'interacts_with')`. This matches the query pattern from `01-people-on-horses.sql`. Ancestor expansion resolves Person to Man, Woman, Boy, Girl automatically. | SQL views: `hierarchy_relationships`, `labeled_images`, `class_hierarchy`. Returns Man/Woman/Boy/Girl + Horse images with relationship annotations. | Step 4 |
-| 4 | **Widget (results-grid)** | Same results-grid widget, but facets reflect relationship query: Person subcategories (Man, Woman, Boy, Girl) as category facets, relationship types (ride, on, interacts_with) as relationship facets. Grid shows thumbnails of people-horse scenes. | Facets derived from result set, not from class hierarchy children | Step 5 |
+| 2 | **LLM** | Decomposes natural language into structured arguments. The tool description instructs: use singular capitalized class names, common top-level classes listed. LLM maps: "people" → `subject: "Person"` (parent class), "horses" → `object: "Horse"`, "riding" → `relationship: "ride"`. Calls `find_images` with structured args. | `{ subject: "Person", relationship: "ride", object: "Horse" }` | Step 3 |
+| 3 | **MCP Server** | Receives clean structured input — no NL parsing needed. Uses `hierarchy_relationships` view with `ancestor_name_1='Person'` and `ancestor_name_2='Horse'` and `relationship_label='ride'`. Ancestor expansion resolves Person to Man, Woman, Boy, Girl automatically. Maps to query pattern from `01-people-on-horses.sql`. | SQL views: `hierarchy_relationships`, `labeled_images`, `class_hierarchy`. Returns Man/Woman/Boy/Girl + Horse images with ride relationships. | Step 4 |
+| 4 | **Widget (results-grid)** | Facets reflect the structured query: Person subcategories (Man, Woman, Boy, Girl) as category facets, relationship types (ride, on, interacts_with) as relationship facets. Grid shows thumbnails of people-horse scenes. | Facets derived from result set | Step 5 |
 | 5 | **LLM (conversation text)** | "Found 149 images of people with horses. The most common relationship is 'ride' (46 images), followed by 'on' (42) and 'interacts_with' (59). Results include men, women, and children. Click a relationship type or person category to narrow down, or describe what you're looking for." | Conversational response using `content` and `structuredContent` | User decides: click facet (Flow 2A), type follow-up (Flow 2B), click thumbnail (Flow 3A) |
 
-**Key characteristic:** LLM reasoning required to map natural language to tool parameters. The LLM must recognize "people" as the parent class Person and select the `relationship` parameter. Response quality depends on LLM interpretation.
+**Key characteristic:** The LLM does what it's good at (NL → structure) and the server does what it's good at (structure → SQL). The tool description provides enough inline guidance for the LLM to normalize common terms (people→Person, horses→Horse) and decompose relationships. No NL parsing on the server.
 
-**Branching:** If the LLM misinterprets the query (e.g., searches for literal "people riding horses" as a class name instead of a relationship query), the results will be empty or wrong. The user can correct by rephrasing: "Search for images where a person is riding a horse, using the ride relationship."
+**When the LLM is unsure of a class name** (e.g., "pictures of labradors" — is it "Labrador" or "Labrador retriever"?): the LLM can call `resolve_entity` first to look up the canonical name, then call `find_images` with the resolved name. The LLM may also load the `popular_entities` resource at the start of a long conversation to pre-cache common class names.
+
+**Argument population guidance** (from tool description):
+- `subject`/`object`: Singular, capitalized, matching dataset hierarchy names. Tool description lists the 10 most common top-level classes.
+- `relationship`: Lowercase. Tool description lists the common relationship types.
+- `query`: Free-text fallback for requests that don't decompose cleanly (e.g., "outdoor scenes with bright colors").
+- No argument is required — the server handles partial input (subject-only, subject+relationship, query-only, etc.)
+
+### Flow 1B variant: LLM calls resolve_entity first
+
+Example: User types "show me pictures of poodles playing"
+
+| Step | Actor | Action | Data | Next |
+|------|-------|--------|------|------|
+| 1 | **User** | Types "show me pictures of poodles playing" | Free-text input | Step 2 |
+| 2 | **LLM** | Recognizes "poodles" but unsure of exact class name. Calls `resolve_entity` to validate. | `{ term: "poodle" }` | Step 3 |
+| 3 | **MCP Server** | Fuzzy matches "poodle" → returns `[{ display_name: "Poodle", root_path: "Entity > Animal > Carnivore > Dog > Poodle", image_count: 89, match_type: "case_insensitive" }]` | Lightweight JSON response, no widget | Step 4 |
+| 4 | **LLM** | Now confident in the name. Calls `find_images` with structured args. | `{ subject: "Poodle", relationship: "plays" }` | Step 5 |
+| 5 | **MCP Server** | Queries with resolved class name. If "plays" returns few results, server may expand to related relationships. | Standard find_images response | Widget renders |
+
+**This two-call pattern is optional.** For common classes listed in the tool description (Person, Dog, Horse, Car, etc.), the LLM can call `find_images` directly. `resolve_entity` is for edge cases and unfamiliar terms.
 
 ---
 

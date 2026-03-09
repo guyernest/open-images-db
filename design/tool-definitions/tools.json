@@ -2,29 +2,37 @@
   "tools": [
     {
       "name": "find_images",
-      "description": "Search for images by class name, object type, or natural language description. Use this for initial queries. Returns a visual grid.",
+      "description": "Search for images by entity class, relationship, or free text. Decompose the user's request into structured arguments when possible: subject ('Person'), object ('Horse'), relationship ('ride'). Use singular capitalized class names matching the dataset hierarchy (e.g., 'Person' not 'people', 'Horse' not 'horses', 'Dog' not 'dogs'). If unsure of the exact class name, call resolve_entity first. Common top-level classes: Person, Animal, Vehicle, Food, Clothing, Furniture, Musical instrument, Sports equipment, Tool, Weapon.",
       "inputSchema": {
         "type": "object",
         "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Primary entity class in singular capitalized form. Use hierarchy parent names for broad searches (e.g., 'Person' matches Man/Woman/Boy/Girl, 'Animal' matches all animals). Examples: 'Person', 'Dog', 'Car', 'Guitar'."
+          },
+          "object": {
+            "type": "string",
+            "description": "Secondary entity involved in a relationship with the subject. Same naming rules as subject. Example: subject='Person', relationship='ride', object='Horse'."
+          },
+          "relationship": {
+            "type": "string",
+            "description": "Relationship type connecting subject and object. Lowercase. Common values: ride, on, wears, holds, at, contain, plays, hang, interacts_with, inside_of. 'is' (attributes) is excluded by default."
+          },
           "query": {
             "type": "string",
-            "description": "Natural language search query or class name (e.g., 'dogs', 'person riding horse', 'musical instruments')"
+            "description": "Free-text fallback when the request doesn't decompose into subject/object/relationship. The server will attempt to interpret it. Prefer structured arguments when possible."
           },
           "limit": {
             "type": "number",
             "default": 20,
             "description": "Maximum number of images to return per page (1-50)"
           },
-          "relationship": {
-            "type": "string",
-            "description": "Optional relationship filter to narrow results (e.g., 'ride', 'wears', 'holds'). Excludes 'is' by default."
-          },
           "min_confidence": {
             "type": "number",
             "description": "Minimum confidence threshold for label matches (0.0-1.0). Omit for all confidence levels."
           }
         },
-        "required": ["query"]
+        "required": []
       },
       "outputSchema": {
         "type": "object",
@@ -543,6 +551,78 @@
         "ui": {
           "resourceUri": "ui://widgets/hierarchy-browser.html",
           "visibility": ["model", "app"]
+        }
+      }
+    },
+    {
+      "name": "resolve_entity",
+      "description": "Resolve a term to matching entity class names in the dataset. Use before find_images when unsure of the exact class name. Returns ranked matches by relevance and popularity.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "term": {
+            "type": "string",
+            "description": "The term to resolve (e.g., 'puppy', 'car', 'breakfast'). Can be plural, informal, or approximate."
+          },
+          "limit": {
+            "type": "number",
+            "default": 5,
+            "description": "Maximum number of matches to return"
+          }
+        },
+        "required": ["term"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "matches": {
+            "type": "array",
+            "description": "Ranked matches, best first. Each includes the canonical class name, its path in the hierarchy, and how many images contain it.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "display_name": { "type": "string", "description": "Canonical class name (e.g., 'Dog')" },
+                "mid": { "type": "string", "description": "Machine ID (e.g., '/m/0bt9lr')" },
+                "root_path": { "type": "string", "description": "Hierarchy path (e.g., 'Entity > Animal > Carnivore > Dog')" },
+                "image_count": { "type": "number", "description": "Number of images with this label in the dataset" },
+                "match_type": { "type": "string", "description": "How the match was found: 'exact', 'case_insensitive', 'singular_form', 'hierarchy_ancestor', 'fuzzy'" }
+              }
+            }
+          },
+          "term": { "type": "string", "description": "Echo of the input term" }
+        }
+      },
+      "_meta": {
+        "ui": {
+          "visibility": ["model", "app"]
+        }
+      },
+      "_comment": "Server-side implementation: (1) exact match on display_name, (2) case-insensitive match, (3) singular/plural normalization, (4) LIKE '%term%' on display_name, (5) search root_path for ancestor matches. Results ordered by match_type priority then image_count descending. This is a lightweight lookup — no widget, just JSON response."
+    }
+  ],
+  "resources": [
+    {
+      "name": "popular_entities",
+      "uri": "resource://open-images/popular-entities",
+      "description": "Top entity classes ranked by image count in the dataset. Load this at the start of a conversation to understand available entities and their canonical names. Useful for normalizing user queries without calling resolve_entity.",
+      "mimeType": "application/json",
+      "_comment": "Dynamic resource generated from: SELECT cd.display_name, COUNT(*) as image_count, ch.root_path FROM labeled_images li JOIN class_hierarchy ch ON li.label_name = ch.mid GROUP BY cd.display_name, ch.root_path ORDER BY image_count DESC LIMIT 100. Returns top 100 classes with display_name, image_count, root_path. The LLM can cache this in memory for the session or across sessions if the user's domain is stable (e.g., always searching news clips, sports, etc.).",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "entities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "display_name": { "type": "string" },
+                "image_count": { "type": "number" },
+                "root_path": { "type": "string" }
+              }
+            }
+          },
+          "total_classes": { "type": "number", "description": "Total number of classes in the dataset (602)" },
+          "generated_at": { "type": "string", "description": "ISO timestamp of when the resource was generated" }
         }
       }
     }

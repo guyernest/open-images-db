@@ -387,8 +387,9 @@ Widget expands Dog node showing Poodle, German shepherd, Labrador, ...
 
 | Tool | Model Visible | App (Widget) Visible | Rationale |
 |------|:---:|:---:|-----------|
-| find_images | Yes | Yes | Model calls on user query from conversation. Widget calls for "more like this" or "same objects" via `ui/message` that triggers model to call this tool. |
-| narrow_results | No | Yes | Widget-only for fast in-place filtering. Model should never call this directly -- it should use `find_images` for new searches. Keeping this app-only prevents the model from attempting to refine when it should start fresh. |
+| find_images | Yes | Yes | Model calls on user query from conversation, decomposing NL into subject/object/relationship args. Widget calls for "more like this" via `ui/message`. |
+| resolve_entity | Yes | Yes | Model calls to validate/normalize entity names before find_images when unsure. Widget calls for autocomplete or disambiguation. Lightweight lookup, no widget rendered. |
+| narrow_results | No | Yes | Widget-only for fast in-place filtering. Model should never call this directly -- it should use `find_images` for new searches. |
 | get_image_details | Yes | Yes | Model calls from conversation when user asks about a specific image. Widget calls when user clicks a thumbnail (via `ui/message` triggering the model). |
 | explore_category | Yes | Yes | Model calls when user asks about categories or hierarchy. Widget calls for tree node expansion via `tools/call` (silent in-widget refresh). |
 
