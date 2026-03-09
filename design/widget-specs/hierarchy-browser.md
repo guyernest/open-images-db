@@ -96,7 +96,7 @@ Each child node in `_meta.hierarchy_tree.children[]` renders as an expandable ro
 - **Facet row:** Limited to subcategories of the current class (from `_meta.hierarchy_tree.children[]` names). Uses same pill design as results-grid widget.
 - **Image grid:** Same layout as the results-grid widget (3-col/2-col responsive grid with thumbnails).
 - **Data source:** Triggers `tools/call` to `find_images` with `query: {class_name}` when entering grid mode. Widget renders the response images.
-- **Pagination:** Same "Load more" pattern as results-grid widget, using `tools/call` to `narrow_results`.
+- **Pagination:** Same "Load more" pattern as results-grid widget, using `tools/call` to `find_images` with incremented page.
 - **Image click:** Same as results-grid: `ui/message` to `"Show details for image {id} [get_image_details]"` with 5s fallback.
 
 ## 3. Data Contract
@@ -175,8 +175,8 @@ When `include_samples` is false in the tool call, `sample_images` will be an emp
 | Action | Mechanism | Tool | Behavior |
 |--------|-----------|------|----------|
 | Click back button | Local state | none | Return to Tree Mode. Tree data still in widget memory. No network call. |
-| Click subcategory facet | `tools/call` | `narrow_results` | Filter grid by subcategory. Same behavior as results-grid widget facets. |
-| Click "Load more" | `tools/call` | `narrow_results` | Append more images. Same behavior as results-grid widget pagination. |
+| Click subcategory facet | `tools/call` | `find_images` | Filter grid by subcategory. Widget constructs `find_images` args from selection state. Same behavior as results-grid widget facets. |
+| Click "Load more" | `tools/call` | `find_images` | Append more images. Widget sends same args with incremented page. Same behavior as results-grid widget pagination. |
 | Click image thumbnail | `ui/message` | (triggers `get_image_details`) | Same as results-grid widget: message + 5s fallback. |
 
 ### Loading States

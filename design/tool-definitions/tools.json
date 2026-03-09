@@ -2,25 +2,39 @@
   "tools": [
     {
       "name": "find_images",
-      "description": "Search for images in the Open Images dataset. Decompose the user's request into structured arguments — all arguments are optional, use only what applies:\n\n• subject only: 'show me dogs' → { subject: 'Dog' }\n• subject + relationship: 'dogs playing' → { subject: 'Dog', relationship: 'plays' }\n• subject + relationship + object: 'person riding horse' → { subject: 'Person', relationship: 'ride', object: 'Horse' }\n• query only (fallback): 'outdoor scenes' → { query: 'outdoor scenes' }\n\nUse singular capitalized class names (Person not people, Horse not horses). If unsure of the exact name, call resolve_entity first. Common classes: Person, Animal, Dog, Cat, Car, Food, Clothing, Furniture.",
+      "description": "Search for images in the Open Images dataset. Decompose the user's request into structured arguments — all arguments are optional, use only what applies:\n\n• subject only: 'show me dogs' → { subject: 'Dog' }\n• subject + relationship: 'dogs playing' → { subject: 'Dog', relationship: 'plays' }\n• subject + relationship + object: 'person riding horse' → { subject: 'Person', relationship: 'ride', object: 'Horse' }\n• multi-select (OR within dimension): { subject: ['Poodle', 'German Shepherd'] }\n• query only (fallback): 'outdoor scenes' → { query: 'outdoor scenes' }\n\nEach argument accepts a string or array of strings. Arrays mean OR within that dimension; different dimensions are ANDed (e.g., subject=['Dog','Cat'] + relationship='on' → dogs OR cats that are 'on' something).\n\nUse singular capitalized class names (Person not people, Horse not horses). If unsure of the exact name, call resolve_entity first. Common classes: Person, Animal, Dog, Cat, Car, Food, Clothing, Furniture.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "subject": {
-            "type": "string",
-            "description": "Primary entity to search for. Singular capitalized form matching the dataset hierarchy. Parent names match all children (e.g., 'Person' matches Man/Woman/Boy/Girl, 'Animal' matches all animals). Omit only when using the query fallback."
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } }
+            ],
+            "description": "Primary entity to search for. String or array of strings. Singular capitalized form matching the dataset hierarchy. Parent names match all children (e.g., 'Person' matches Man/Woman/Boy/Girl). Array means OR: [\"Poodle\", \"German Shepherd\"] matches either breed. Omit only when using the query fallback."
           },
           "object": {
-            "type": "string",
-            "description": "Second entity in a relationship with the subject. Omit when the user is not describing a relationship between two things (e.g., 'show me dogs' has no object; 'person riding horse' has object='Horse'). Same naming rules as subject."
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } }
+            ],
+            "description": "Second entity in a relationship with the subject. String or array of strings. Omit when the user is not describing a relationship between two things. Array means OR: [\"Horse\", \"Bicycle\"] matches either. Same naming rules as subject."
           },
           "relationship": {
-            "type": "string",
-            "description": "How subject relates to object. Lowercase. Omit when the user just wants images of an entity without a specific relationship. Common values: ride, on, wears, holds, at, contain, plays, hang, interacts_with, inside_of. The 'is' type (attributes like 'Man is Standing') is excluded by default."
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } }
+            ],
+            "description": "How subject relates to object. Lowercase. String or array of strings. Omit when the user just wants images of an entity without a specific relationship. Array means OR: [\"ride\", \"on\"] matches either. Common values: ride, on, wears, holds, at, contain, plays, hang, interacts_with, inside_of. The 'is' type is excluded by default."
           },
           "query": {
             "type": "string",
             "description": "Free-text fallback for requests that don't decompose into subject/object/relationship (e.g., 'outdoor scenes with bright colors', 'busy street'). Prefer structured arguments when the request mentions identifiable entities or relationships."
+          },
+          "page": {
+            "type": "number",
+            "default": 1,
+            "description": "Page number for pagination (1-indexed)"
           },
           "limit": {
             "type": "number",
@@ -169,113 +183,6 @@
         "ui": {
           "resourceUri": "ui://widgets/results-grid.html",
           "visibility": ["model", "app"]
-        }
-      }
-    },
-    {
-      "name": "narrow_results",
-      "description": "Refine the current search results by adding filters. Called by the widget directly -- do not call this from conversation.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "previous_query": {
-            "type": "string",
-            "description": "The original search query being refined"
-          },
-          "filter": {
-            "type": "string",
-            "description": "Filter expression. Supports: 'category:Poodle' (class filter), 'relationship:ride' (relationship type), 'confidence:>0.8' (threshold), or free text for additional search terms."
-          },
-          "page": {
-            "type": "number",
-            "default": 1,
-            "description": "Page number for pagination (1-indexed)"
-          },
-          "limit": {
-            "type": "number",
-            "default": 20,
-            "description": "Maximum number of images per page (1-50)"
-          }
-        },
-        "required": ["previous_query", "filter"]
-      },
-      "outputSchema": {
-        "type": "object",
-        "description": "Same three-layer structure as find_images. The widget re-renders in place with filtered results.",
-        "properties": {
-          "structuredContent": {
-            "type": "object",
-            "description": "Updated structured summary reflecting applied filters",
-            "properties": {
-              "query": { "type": "string" },
-              "total_results": { "type": "number" },
-              "page": { "type": "number" },
-              "facets": {
-                "type": "object",
-                "properties": {
-                  "categories": { "type": "array", "items": { "type": "object" } },
-                  "relationships": { "type": "array", "items": { "type": "object" } },
-                  "confidence_ranges": { "type": "array", "items": { "type": "object" } }
-                }
-              },
-              "applied_filters": {
-                "type": "array",
-                "items": { "type": "string" },
-                "description": "List of currently active filters for display as removable chips"
-              },
-              "summary": { "type": "string" }
-            }
-          },
-          "content": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "type": { "type": "string", "const": "text" },
-                "text": { "type": "string" }
-              }
-            }
-          },
-          "_meta": {
-            "type": "object",
-            "properties": {
-              "images": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": { "type": "string" },
-                    "thumbnail_300k_url": { "type": "string" },
-                    "labels": { "type": "array", "items": { "type": "string" } },
-                    "confidence": { "type": "number" },
-                    "has_boxes": { "type": "boolean" },
-                    "has_relationships": { "type": "boolean" }
-                  }
-                }
-              },
-              "hierarchy_context": {
-                "type": "object",
-                "properties": {
-                  "path": { "type": "string" },
-                  "children": { "type": "array", "items": { "type": "string" } },
-                  "depth": { "type": "number" }
-                }
-              },
-              "query_metadata": {
-                "type": "object",
-                "properties": {
-                  "sql_views_used": { "type": "array", "items": { "type": "string" } },
-                  "execution_time_ms": { "type": "number" }
-                }
-              }
-            }
-          }
-        }
-      },
-      "_meta": {
-        "ui": {
-          "resourceUri": "ui://widgets/results-grid.html",
-          "visibility": ["app"]
         }
       }
     },

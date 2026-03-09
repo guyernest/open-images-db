@@ -5,9 +5,9 @@ Self-contained image search results widget with inline facet filtering, thumbnai
 ## 1. Overview
 
 - **Purpose:** Display search results as a visual thumbnail grid with inline filtering controls
-- **Rendered by:** `find_images` and `narrow_results` tool responses
+- **Rendered by:** `find_images` tool responses
 - **Widget URI:** `ui://widgets/results-grid.html`
-- **Self-contained:** Facets, pagination, and grid all live in this single iframe. Filter state is managed locally; data refresh uses `tools/call` to `narrow_results`.
+- **Self-contained:** Facets, pagination, and grid all live in this single iframe. Selection state is managed locally; data refresh uses `tools/call` to `find_images` with args constructed from local state. Server is stateless — every call is self-contained.
 - **Data source:** `_meta.images` array for thumbnails, `structuredContent.facets` for filter options, `structuredContent.summary` for header text
 
 ## 2. Layout Specification
@@ -38,8 +38,8 @@ Target viewport: 600-800px wide (ChatGPT conversation column). All layout uses C
 - **Category pills:** Derived from `structuredContent.facets.categories[]`. Each pill shows `{name} ({count})`.
 - **Relationship pills:** Derived from `structuredContent.facets.relationships[]`. Each pill shows `{label} ({count})`. Visually distinct from category pills (different border color or icon prefix).
 - **Active state:** Filled background (primary color) with white text. Inactive: outlined with primary color border, transparent background.
-- **Clicking a pill** toggles it: active -> inactive removes filter, inactive -> active adds filter. Both trigger `tools/call` to `narrow_results`.
-- **Applied filters from `narrow_results` response:** If `structuredContent.applied_filters` is present, render those as removable chips (with X icon) at the start of the facet row.
+- **Clicking a pill** toggles it: active -> inactive removes value from local selection, inactive -> active adds value. Both trigger `tools/call` to `find_images` with args constructed from the updated local selection state.
+- **Active pills** show the current local selection. No server-side filter state exists — the widget reconstructs full `find_images` args on every interaction.
 - Gap between pills: 8px. Pill padding: 6px 12px. Border-radius: 16px (fully rounded).
 
 ### Image Grid
@@ -79,7 +79,7 @@ Target viewport: 600-800px wide (ChatGPT conversation column). All layout uses C
 
 - Left: "Showing {loaded_count} of {total_results}"
 - Right: "Load more results" button
-- Clicking "Load more" triggers `tools/call` to `narrow_results` with `page: current_page + 1` and all active filters
+- Clicking "Load more" triggers `tools/call` to `find_images` with `page: current_page + 1` and current selection args
 - New images are APPENDED to existing grid (not replaced)
 - Button disabled with spinner while loading
 - Button hidden when all results are loaded (`loaded_count >= total_results`)
@@ -124,7 +124,6 @@ The widget expects this JSON structure from tool responses:
       { "range": "string -- e.g., '0.9-1.0'", "count": "number" }
     ]
   },
-  "applied_filters": ["string -- currently active filter expressions (from narrow_results only)"],
   "summary": "string -- human-readable one-line summary"
 }
 ```
@@ -159,9 +158,8 @@ The widget expects this JSON structure from tool responses:
 
 | Field | Source Tool | Notes |
 |-------|-----------|-------|
-| `structuredContent.*` | `find_images`, `narrow_results` | Both tools produce identical structuredContent shape |
-| `_meta.images[]` | `find_images`, `narrow_results` | Same image shape from both tools |
-| `applied_filters` | `narrow_results` only | Not present in initial `find_images` response |
+| `structuredContent.*` | `find_images` | Single tool for all search and refinement |
+| `_meta.images[]` | `find_images` | Same image shape for initial and refined queries |
 
 ## 4. Interaction Behaviors
 
@@ -169,12 +167,12 @@ Every user action maps to a mechanism from the interaction model (`design/patter
 
 | Action | Mechanism | Tool | Parameters | Widget Behavior |
 |--------|-----------|------|------------|-----------------|
-| Click category facet pill | `tools/call` | `narrow_results` | `filter: "category:{name}"`, `previous_query: {current_query}`, `page: 1` | Replace grid with filtered results. Update facet pill to active state. Reset pagination to page 1. |
-| Click relationship facet pill | `tools/call` | `narrow_results` | `filter: "relationship:{label}"`, `previous_query: {current_query}`, `page: 1` | Same as category facet. Relationship pills use same active/inactive toggle. |
-| Remove applied filter chip | `tools/call` | `narrow_results` | `filter: {remaining_filters}`, `previous_query: {current_query}`, `page: 1` | Re-query without the removed filter. Replace grid. Reset pagination. |
-| Click "Load more" | `tools/call` | `narrow_results` | `previous_query: {current_query}`, `filter: {active_filters}`, `page: {current_page + 1}` | Append new images to existing grid. Update "Showing X of Y" count. Increment current_page. |
+| Click category facet pill | `tools/call` | `find_images` | `subject: {toggled selection}`, plus current relationship/object selections, `page: 1` | Toggle pill state. Construct full args from local selection. Replace grid with filtered results. Reset pagination to page 1. |
+| Click relationship facet pill | `tools/call` | `find_images` | `relationship: {toggled selection}`, plus current subject/object selections, `page: 1` | Same as category facet. Toggle pill, reconstruct args, replace grid. |
+| Remove active facet toggle | `tools/call` | `find_images` | Remaining selections as args, `page: 1` | Remove value from local selection, re-query. Replace grid. Reset pagination. |
+| Click "Load more" | `tools/call` | `find_images` | Current selections as args, `page: {current_page + 1}` | Append new images to existing grid. Update "Showing X of Y" count. Increment current_page. |
 | Click image thumbnail | `ui/message` | (triggers `get_image_details`) | Message: `"Show details for image {id} [get_image_details]"` | Show loading overlay on clicked thumbnail (spinner + dimmed). After 5s without response: show fallback text "Try typing: Show details for image {id}". Widget freezes when new detail widget appears below. |
-| Click "Clear all filters" | `tools/call` | `find_images` | `query: {original_query}` | Reset grid to unfiltered state. Clear all active filter pills. Reset pagination. |
+| Click "Clear all filters" | `tools/call` | `find_images` | `subject: {original_subject}`, no other args, `page: 1` | Clear local selection state. Reset grid to unfiltered results. Reset pagination. |
 
 ### Loading States
 
@@ -195,14 +193,34 @@ The widget maintains this internal state:
 
 ```javascript
 {
-  original_query: string,       // The initial search query (never modified by filters)
-  current_query: string,        // May include filter context
-  active_filters: string[],     // Array of active filter expressions (e.g., ["category:Poodle", "relationship:ride"])
-  current_page: number,         // Current pagination page (1-indexed)
-  loaded_images: object[],      // Accumulated images across all loaded pages
-  total_results: number,        // Total available results
-  facets: object,               // Current facet options from structuredContent
-  pending_request: string|null  // Track in-flight tools/call to cancel on new request
+  // Selection state — the widget IS the query
+  active_subjects: string[],       // e.g., ["Poodle"] — toggled category facets
+  active_relationships: string[],  // e.g., ["ride", "on"] — toggled relationship facets
+  active_objects: string[],        // e.g., ["Horse"] — toggled object facets
+  original_subject: string|null,   // The initial subject from first find_images (for "clear all")
+
+  // Display state
+  current_page: number,            // Current pagination page (1-indexed)
+  loaded_images: object[],         // Accumulated images across all loaded pages
+  total_results: number,           // Total available results
+  facets: object,                  // Current facet options from structuredContent
+
+  // Request state
+  pending_request: string|null     // Track in-flight tools/call to cancel on new request
+}
+```
+
+The widget constructs `find_images` args from local state on every interaction:
+```javascript
+function buildFindImagesArgs() {
+  const args = { page: 1, limit: 20 };
+  if (active_subjects.length === 1) args.subject = active_subjects[0];
+  else if (active_subjects.length > 1) args.subject = active_subjects;
+  if (active_relationships.length === 1) args.relationship = active_relationships[0];
+  else if (active_relationships.length > 1) args.relationship = active_relationships;
+  if (active_objects.length === 1) args.object = active_objects[0];
+  else if (active_objects.length > 1) args.object = active_objects;
+  return args;
 }
 ```
 
@@ -210,10 +228,10 @@ The widget maintains this internal state:
 
 | Trigger | State Change |
 |---------|-------------|
-| Initial render (from `find_images`) | Parse `_meta.images` into `loaded_images`. Set `original_query` and `current_query` from `structuredContent.query`. Set `current_page` from `structuredContent.page`. Populate `facets` from `structuredContent.facets`. `active_filters` = empty. |
-| Facet toggle (from `narrow_results`) | REPLACE `loaded_images` with new response images. Update `facets` from new response. Add/remove filter from `active_filters`. Reset `current_page` to 1. |
-| Load more (from `narrow_results`) | APPEND new images to `loaded_images`. Increment `current_page`. Facets and filters unchanged. |
-| Clear all filters (from `find_images`) | REPLACE `loaded_images`. Clear `active_filters`. Reset `current_page` to 1. Restore `current_query` to `original_query`. |
+| Initial render (from `find_images`) | Parse `_meta.images` into `loaded_images`. Set `original_subject` from the initial query subject. Set `current_page` from `structuredContent.page`. Populate `facets` from `structuredContent.facets`. All active arrays = empty (initial results show unfiltered). |
+| Facet toggle (from `find_images` via `tools/call`) | Add/remove value in the appropriate active array. Call `find_images` with `buildFindImagesArgs()`. REPLACE `loaded_images` with new response. Update `facets` from new response. Reset `current_page` to 1. |
+| Load more (from `find_images` via `tools/call`) | Call `find_images` with current args + `page: current_page + 1`. APPEND new images to `loaded_images`. Increment `current_page`. Selections and facets unchanged. |
+| Clear all filters | Clear all active arrays. Call `find_images` with `subject: original_subject`. REPLACE `loaded_images`. Reset `current_page` to 1. |
 
 ### Request Cancellation
 

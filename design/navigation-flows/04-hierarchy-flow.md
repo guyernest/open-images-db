@@ -73,7 +73,7 @@ User wants to see actual images for a category.
 | 2 | **Widget (hierarchy-browser)** | Calls `tools/call find_images` with category filter | `app.callServerTool({ name: "find_images", arguments: { query: "Dog" } })` | Step 3 |
 | 3 | **MCP Server** | Queries for Dog images with breed facets. Returns standard `find_images` three-layer response. | Same response as a direct `find_images` call for "Dog" | Step 4 |
 | 4 | **Widget (hierarchy-browser)** | Internal mode transition within the same iframe. Tree view fades out, grid view fades in. Grid shows dog images with subcategory facets (Poodle, German shepherd, Labrador). A "Back to tree" button appears in the top-left. | Widget manages two internal modes: tree and grid. Same iframe, no new conversation turn. | Step 5 |
-| 5 | **User** | Browses the grid. Can click facets (same as Flow 2A in `02-refinement-flow.md`), paginate, or click thumbnails. | Standard grid interactions via `tools/call narrow_results` | User clicks "Back to tree" (Step 6) or continues in grid |
+| 5 | **User** | Browses the grid. Can click facets (same as Flow 2A in `02-refinement-flow.md`), paginate, or click thumbnails. | Standard grid interactions via `tools/call find_images` | User clicks "Back to tree" (Step 6) or continues in grid |
 | 6 | **User** | Clicks "Back to tree" button | Return to tree mode | Step 7 |
 | 7 | **Widget** | Returns to tree mode. Previous tree state is intact (expanded nodes, breadcrumb position). No server call needed -- tree state was preserved in widget memory. | Client-side state restoration | User continues browsing the tree |
 

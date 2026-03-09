@@ -38,12 +38,13 @@ A critical architectural distinction in MCP that shapes all interaction flows:
 
 **Code pattern:**
 ```javascript
-// Widget calls tool directly via App SDK bridge
+// Widget calls find_images directly via App SDK bridge with current selection state
 const result = await app.callServerTool({
-  name: "narrow_results",
+  name: "find_images",
   arguments: {
-    previous_query: currentQuery,
-    filter: "category:Poodle",
+    subject: activeSubjects.length === 1 ? activeSubjects[0] : activeSubjects,
+    relationship: activeRelationships.length === 1 ? activeRelationships[0] : activeRelationships,
+    object: activeObjects.length === 1 ? activeObjects[0] : activeObjects,
     page: 1,
     limit: 20
   }
@@ -117,18 +118,19 @@ window.parent.postMessage({
 Use this tree to determine which mechanism to use for any widget interaction.
 
 - **Is the user staying within the same search context?** --> `tools/call`
-  - Facet click (category, relationship, confidence range) --> `tools/call narrow_results`
+  - Facet click (category, relationship, confidence range) --> `tools/call find_images`
+    - Widget constructs full args from current selection state (subject[], relationship[], object[], page)
     - Widget re-renders grid in place with filtered results
-    - Applied filters shown as removable chips above the grid
-  - Pagination (next/previous page) --> `tools/call narrow_results` with page param
+    - Active facets shown as toggled pills
+  - Pagination (next/previous page) --> `tools/call find_images` with page param
+    - Widget sends same args with incremented page
     - Widget updates image grid, preserves all active filters
-    - Page indicator updates
-  - Sort change (by confidence, by label count) --> `tools/call narrow_results`
+  - Sort change (by confidence, by label count) --> `tools/call find_images`
     - Widget re-renders grid with same results in new order
   - Hierarchy node expand (in hierarchy browser widget) --> `tools/call explore_category`
     - Widget expands the tree node in place, showing children
     - No new conversation turn needed
-  - Remove a filter chip --> `tools/call narrow_results` without that filter
+  - Remove a facet toggle --> `tools/call find_images` without that value
     - Widget re-renders with broadened results
 
 - **Is the user switching to a fundamentally different view?** --> `ui/message`
@@ -284,7 +286,9 @@ User clicks "Poodle" facet in results grid
   |
   v
 Widget (results-grid.html)
-  | app.callServerTool({ name: "narrow_results", arguments: { filter: "category:Poodle" } })
+  | Toggles "Poodle" in local activeSubjects[]
+  | Constructs full find_images args from current selection state
+  | app.callServerTool({ name: "find_images", arguments: { subject: ["Poodle"], page: 1 } })
   |
   v
 MCP Server
@@ -387,15 +391,13 @@ Widget expands Dog node showing Poodle, German shepherd, Labrador, ...
 
 | Tool | Model Visible | App (Widget) Visible | Rationale |
 |------|:---:|:---:|-----------|
-| find_images | Yes | Yes | Model calls on user query from conversation, decomposing NL into subject/object/relationship args. Widget calls for "more like this" via `ui/message`. |
+| find_images | Yes | Yes | Model calls on user query from conversation, decomposing NL into subject/object/relationship args. Widget calls via `tools/call` for facet filtering and pagination (constructing args from local selection state). |
 | resolve_entity | Yes | Yes | Model calls to validate/normalize entity names before find_images when unsure. Widget calls for autocomplete or disambiguation. Lightweight lookup, no widget rendered. |
-| narrow_results | No | Yes | Widget-only for fast in-place filtering. Model should never call this directly -- it should use `find_images` for new searches. |
 | get_image_details | Yes | Yes | Model calls from conversation when user asks about a specific image. Widget calls when user clicks a thumbnail (via `ui/message` triggering the model). |
 | explore_category | Yes | Yes | Model calls when user asks about categories or hierarchy. Widget calls for tree node expansion via `tools/call` (silent in-widget refresh). |
 
 ### Visibility Design Principles
 
 1. **Model-visible tools** handle new user intents that require LLM reasoning (understanding what the user wants, picking the right query parameters)
-2. **App-only tools** handle deterministic widget interactions where the action is unambiguous (clicking a facet always means "filter by this value")
-3. **Dual-visible tools** serve both paths: the model invokes them for conversational requests, and widgets invoke them for direct interactions
-4. `narrow_results` is the only app-only tool because filtering is always a deterministic action within an existing context -- no LLM reasoning needed
+2. **Dual-visible tools** serve both paths: the model invokes them for conversational requests, and widgets invoke them for direct interactions
+3. **All tools are dual-visible.** The widget uses `find_images` directly for facet refinement — the widget holds selection state locally and constructs complete `find_images` args on each interaction. The server is stateless; every call is self-contained.
