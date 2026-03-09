@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Data Quality
-status: completed
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-09T15:32:42.947Z"
-last_activity: 2026-03-09 -- 08-02 Validation script and report
+status: in-progress
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-03-09T16:13:15Z"
+last_activity: 2026-03-09 -- 09-01 Tool definitions and interaction model
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
   percent: 100
 ---
 
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** A fully queryable SQL interface over Open Images V7 annotations via Athena/Iceberg
-**Current focus:** Phase 8: End-to-End Validation
+**Current focus:** Phase 9: Design Navigation Paths for UI
 
 ## Current Position
 
-Phase: 8 of 8 (End-to-End Validation)
-Plan: 2 of 2 in current phase (complete)
-Status: Milestone v1.1 complete
-Last activity: 2026-03-09 -- 08-02 Validation script and report
+Phase: 9 of 9 (Design Navigation Paths for UI)
+Plan: 1 of 3 in current phase (complete)
+Status: In progress
+Last activity: 2026-03-09 -- 09-01 Tool definitions and interaction model
 
-Progress: [██████████] 100% (08: 2/2 plans complete)
+Progress: [████████░░] 78% (09: 1/3 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 2.4min
-- Total execution time: 0.48 hours
+- Total plans completed: 13
+- Average duration: 2.5min
+- Total execution time: 0.53 hours
 
 **By Phase:**
 
@@ -51,6 +51,7 @@ Progress: [██████████] 100% (08: 2/2 plans complete)
 | 06-relationship-hierarchy-audit | 1 | 2min | 2min |
 | 07-query-view-fixes | 1 | 2min | 2min |
 | 08-end-to-end-validation | 1 | 3min | 3min |
+| 09-design-navigation-paths-for-ui | 1 | 4min | 4min |
 
 **Recent Trend:**
 - Last 5 plans: -
@@ -62,6 +63,7 @@ Progress: [██████████] 100% (08: 2/2 plans complete)
 | Phase 07 P02 | 1min | 1 tasks | 4 files |
 | Phase 08 P01 | 3min | 2 tasks | 5 files |
 | Phase 08 P02 | 2min | 2 tasks | 2 files |
+| Phase 09 P01 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -82,6 +84,9 @@ Recent decisions affecting current work:
 - [08-01]: MCP reference structured as 4 sections: schema, common values, patterns, pitfalls
 - [08-01]: Example queries use hierarchy_relationships view for ancestor-class expansion patterns
 - [Phase 08]: Validation uses 5-category check framework (non-empty, human-readable, row counts, cross-view, round-trips)
+- [09-01]: narrow_results is app-only visibility -- widget calls directly, model uses find_images for new searches
+- [09-01]: ui/message text includes tool name hint in brackets to maximize LLM tool-call probability
+- [09-01]: start_code_mode defined as MCP prompt (not tool) loading 00-mcp-reference.sql
 
 ### Roadmap Evolution
 
@@ -97,6 +102,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-09T15:32:42.943Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-design-navigation-paths-for-ui/09-CONTEXT.md
+Last session: 2026-03-09T16:13:15Z
+Stopped at: Completed 09-01-PLAN.md
+Resume file: .planning/phases/09-design-navigation-paths-for-ui/09-01-SUMMARY.md
