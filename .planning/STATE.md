@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Data Quality
-status: in-progress
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-03-09T16:13:15Z"
-last_activity: 2026-03-09 -- 09-01 Tool definitions and interaction model
+status: executing
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-03-09T16:22:07.582Z"
+last_activity: 2026-03-09 -- 09-02 Widget specifications
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 7
-  percent: 100
+  completed_plans: 9
+  percent: 89
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 Phase: 9 of 9 (Design Navigation Paths for UI)
-Plan: 1 of 3 in current phase (complete)
+Plan: 2 of 3 in current phase (complete)
 Status: In progress
-Last activity: 2026-03-09 -- 09-01 Tool definitions and interaction model
+Last activity: 2026-03-09 -- 09-02 Widget specifications
 
-Progress: [████████░░] 78% (09: 1/3 plans complete)
+Progress: [█████████░] 89% (09: 2/3 plans complete)
 
 ## Performance Metrics
 
@@ -64,6 +64,8 @@ Progress: [████████░░] 78% (09: 1/3 plans complete)
 | Phase 08 P01 | 3min | 2 tasks | 5 files |
 | Phase 08 P02 | 2min | 2 tasks | 2 files |
 | Phase 09 P01 | 4min | 2 tasks | 2 files |
+| Phase 09 P03 | 5min | 2 tasks | 4 files |
+| Phase 09 P02 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -87,6 +89,9 @@ Recent decisions affecting current work:
 - [09-01]: narrow_results is app-only visibility -- widget calls directly, model uses find_images for new searches
 - [09-01]: ui/message text includes tool name hint in brackets to maximize LLM tool-call probability
 - [09-01]: start_code_mode defined as MCP prompt (not tool) loading 00-mcp-reference.sql
+- [Phase 09]: Facet click (tools/call) is PRIMARY refinement -- fast, deterministic, no LLM involvement
+- [Phase 09]: Tree-to-grid transition within same widget iframe, no new conversation turn
+- [Phase 09]: Facet pills use toggle semantics; deterministic color palette for bounding boxes; tree-to-grid within iframe; 'is' relationships hidden by default
 
 ### Roadmap Evolution
 
@@ -102,6 +107,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-09T16:13:15Z
-Stopped at: Completed 09-01-PLAN.md
-Resume file: .planning/phases/09-design-navigation-paths-for-ui/09-01-SUMMARY.md
+Last session: 2026-03-09T16:22:07.580Z
+Stopped at: Completed 09-02-PLAN.md
+Resume file: None

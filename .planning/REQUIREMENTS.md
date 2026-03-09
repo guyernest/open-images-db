@@ -28,7 +28,7 @@ Requirements for conversational UI navigation design. Design-only (specification
 
 - [x] **NAV-01**: Complete MCP tool definitions (inputSchema, outputSchema, _meta.ui) exist for find_images, narrow_results, get_image_details, and explore_category
 - [ ] **NAV-02**: Widget specifications define layout, data contracts, interaction behaviors, and state management for results grid, image detail, and hierarchy browser
-- [ ] **NAV-03**: Conversation flow documents cover all entry points (NL, MCP prompt), refinement paths (facet + free-text), detail view, hierarchy browsing, and code mode
+- [x] **NAV-03**: Conversation flow documents cover all entry points (NL, MCP prompt), refinement paths (facet + free-text), detail view, hierarchy browsing, and code mode
 - [x] **NAV-04**: Interaction pattern documentation provides a decision framework for tools/call vs ui/message vs ui/update-model-context with fallback and error handling patterns
 
 ## Future Requirements
