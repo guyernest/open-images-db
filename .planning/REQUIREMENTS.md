@@ -56,16 +56,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIX-01 | Phase 7 | Complete |
 | FIX-02 | Phase 7 | Complete |
 | FIX-03 | Phase 7 | Complete |
-| NAV-01 | Phase 9 | Planned |
-| NAV-02 | Phase 9 | Planned |
-| NAV-03 | Phase 9 | Planned |
-| NAV-04 | Phase 9 | Planned |
+| NAV-01 | Phase 9 | Complete |
+| NAV-02 | Phase 9 | Complete |
+| NAV-03 | Phase 9 | Complete |
+| NAV-04 | Phase 9 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 7 total (7 complete)
-- Phase 9 requirements: 4 total (0 complete)
+- Phase 9 requirements: 4 total (4 complete)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-09 after Phase 9 planning*
+*Last updated: 2026-03-09 after milestone audit*
