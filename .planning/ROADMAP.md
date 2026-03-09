@@ -74,6 +74,22 @@ Plans:
 - [ ] 08-01-PLAN.md — Create MCP reference resource and new example queries
 - [ ] 08-02-PLAN.md — Create validation script, run validation, produce report
 
+### Phase 9: Design Navigation Paths for UI
+**Goal:** Design the complete conversational UI navigation system for image discovery via MCP Apps, producing specification documents covering tool definitions, conversation flows, widget specifications, and interaction patterns
+**Depends on:** Phase 8
+**Requirements**: NAV-01, NAV-02, NAV-03, NAV-04
+**Success Criteria** (what must be TRUE):
+  1. Complete MCP tool definitions exist with inputSchema/outputSchema for all use-case tools
+  2. Widget specs define self-contained interactive UIs respecting no-cross-widget constraint
+  3. Conversation flows trace every user journey from entry to image selection
+  4. Interaction patterns document provides clear decision framework for tools/call vs ui/message
+**Plans:** 3 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Define MCP tool schemas and interaction patterns
+- [ ] 09-02-PLAN.md — Specify widget UIs (results grid, image detail, hierarchy browser)
+- [ ] 09-03-PLAN.md — Document conversation flows (search, refinement, detail, hierarchy)
+
 ## Progress
 
 **Execution Order:**
@@ -84,3 +100,4 @@ Phases execute in numeric order: 6 -> 7 -> 8
 | 6. Relationship & Hierarchy Audit | v1.1 | 0/2 | Planning complete | - |
 | 7. Query & View Fixes | 2/2 | Complete   | 2026-03-08 | - |
 | 8. End-to-End Validation | 1/2 | In Progress|  | - |
+| 9. Design Navigation Paths for UI | - | 0/3 | Planning complete | - |
