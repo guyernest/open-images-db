@@ -65,19 +65,22 @@ At depth 4 (Poodle), the tree shows the leaf node with its image count and sampl
 
 ## Flow 4C: Transitioning from Hierarchy to Image Grid
 
-User wants to see actual images for a category.
+User wants to see actual images for a category. The grid mode within the hierarchy-browser uses the same stateless facet model as the results-grid widget — selection state is local, every `tools/call` sends complete `find_images` args.
 
 | Step | Actor | Action | Data | Next |
 |------|-------|--------|------|------|
 | 1 | **User** | Clicks "View all images" button on the Dog category node | Grid transition request | Step 2 |
-| 2 | **Widget (hierarchy-browser)** | Calls `tools/call find_images` with subject | `app.callServerTool({ name: "find_images", arguments: { subject: "Dog" } })` | Step 3 |
-| 3 | **MCP Server** | Queries for Dog images with breed facets. Returns standard `find_images` three-layer response. | Same response as a direct `find_images` call for "Dog" | Step 4 |
-| 4 | **Widget (hierarchy-browser)** | Internal mode transition within the same iframe. Tree view fades out, grid view fades in. Grid shows dog images with subcategory facets (Poodle, German shepherd, Labrador). A "Back to tree" button appears in the top-left. | Widget manages two internal modes: tree and grid. Same iframe, no new conversation turn. | Step 5 |
-| 5 | **User** | Browses the grid. Can click facets (same as Flow 2A in `02-refinement-flow.md`), paginate, or click thumbnails. | Standard grid interactions via `tools/call find_images` | User clicks "Back to tree" (Step 6) or continues in grid |
+| 2 | **Widget (hierarchy-browser)** | Initializes grid mode state: `original_subject: "Dog"`, `active_subjects: []`, `active_relationships: []`, `active_objects: []`. Calls `find_images` with the category subject. | `app.callServerTool({ name: "find_images", arguments: { subject: "Dog" } })` | Step 3 |
+| 3 | **MCP Server** | Queries for Dog images. Returns standard `find_images` three-layer response with breed facets (from `class_hierarchy` children) and relationship facets (from `hierarchy_relationships`). | Same response as a standalone `find_images` call | Step 4 |
+| 4 | **Widget (hierarchy-browser)** | Internal mode transition within the same iframe. Tree view fades out, grid view fades in. Grid shows dog images. Category facet pills show subcategories (Poodle, German shepherd, Labrador). Relationship facet pills show available relationships (ride, on, wears). A "Back to tree" button appears in the top-left. | Widget manages two internal modes: tree and grid. Same iframe, no new conversation turn. | Step 5 |
+| 5 | **User** | Browses the grid using the same interaction patterns as the results-grid widget (Flow 2A in `02-refinement-flow.md`): | | |
+| | | **Facet click** — toggles value in local selection arrays, constructs complete `find_images` args. E.g., clicking "Poodle" sets `active_subjects: ["Poodle"]`, calls `find_images({ subject: "Poodle" })`. Clicking "ride" adds `active_relationships: ["ride"]`, calls `find_images({ subject: "Poodle", relationship: "ride" })`. | Widget holds selection state, server is stateless | |
+| | | **Pagination** — calls `find_images` with current selections + incremented page. | Appends images to grid | |
+| | | **Thumbnail click** — sends `ui/message` for `get_image_details` (Flow 3A). | Creates new conversation turn below | User clicks "Back to tree" (Step 6) or continues |
 | 6 | **User** | Clicks "Back to tree" button | Return to tree mode | Step 7 |
-| 7 | **Widget** | Returns to tree mode. Previous tree state is intact (expanded nodes, breadcrumb position). No server call needed -- tree state was preserved in widget memory. | Client-side state restoration | User continues browsing the tree |
+| 7 | **Widget** | Returns to tree mode. Previous tree state is intact (expanded nodes, breadcrumb position). Grid selection state is discarded. No server call needed — tree state was preserved in widget memory. | Client-side state restoration | User continues browsing the tree |
 
-**Key design:** The tree-to-grid and grid-to-tree transitions happen within the same widget iframe. This avoids creating new conversation turns for what is essentially a view toggle. The widget maintains internal state for both modes.
+**Key design:** The tree-to-grid and grid-to-tree transitions happen within the same widget iframe. This avoids creating new conversation turns for what is essentially a view toggle. The widget maintains internal state for both modes — tree state persists across transitions, grid selection state is reset on each "View all images" entry.
 
 ---
 
