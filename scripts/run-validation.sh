@@ -267,7 +267,7 @@ run_category_4() {
   fi
 
   # Check 1: Person children from class_hierarchy
-  local sql="SELECT display_name FROM ${ATHENA_DATABASE}.class_hierarchy WHERE parent_display_name = 'Person' AND depth = 2 ORDER BY display_name"
+  local sql="SELECT display_name FROM ${ATHENA_DATABASE}.class_hierarchy WHERE parent_name = 'Person' AND depth = 2 ORDER BY display_name"
   if athena_execute_and_wait "$sql" "Person children from class_hierarchy"; then
     local children
     children=$(get_result_column)

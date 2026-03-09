@@ -3,14 +3,10 @@
 --
 -- Demonstrates how to retrieve all annotations for a single image by
 -- querying labels, bounding boxes, and relationships separately.
--- Substitute any image_id for the sample value below.
 --
--- In practice, an MCP tool would combine these queries or use UNION ALL
--- to return a single unified result set describing the image contents.
-
--- Replace this with any valid image_id from the dataset.
--- This example uses a placeholder; pick an image_id known to have
--- relationships for the richest output.
+-- In practice, an MCP tool would receive the image_id as a parameter.
+-- These examples use a subquery to pick an image with relationships
+-- so the validation always returns non-empty results.
 
 -- Query 1: All image-level labels
 --
@@ -25,7 +21,7 @@
 
 SELECT display_name, source, confidence
 FROM __DATABASE__.labeled_images
-WHERE image_id = 'SAMPLE_IMAGE_ID'
+WHERE image_id IN (SELECT image_id FROM __DATABASE__.labeled_relationships LIMIT 1)
 ORDER BY confidence DESC, display_name;
 
 -- Query 2: All bounding boxes
@@ -40,7 +36,7 @@ ORDER BY confidence DESC, display_name;
 
 SELECT display_name, x_min, x_max, y_min, y_max
 FROM __DATABASE__.labeled_boxes
-WHERE image_id = 'SAMPLE_IMAGE_ID'
+WHERE image_id IN (SELECT image_id FROM __DATABASE__.labeled_relationships LIMIT 1)
 ORDER BY display_name;
 
 -- Query 3: All relationships
@@ -55,5 +51,5 @@ ORDER BY display_name;
 
 SELECT display_name_1, relationship_label, display_name_2
 FROM __DATABASE__.labeled_relationships
-WHERE image_id = 'SAMPLE_IMAGE_ID'
+WHERE image_id IN (SELECT image_id FROM __DATABASE__.labeled_relationships LIMIT 1)
 ORDER BY display_name_1, relationship_label;
