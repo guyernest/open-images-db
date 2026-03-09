@@ -549,6 +549,29 @@
   ],
   "prompts": [
     {
+      "name": "find_images",
+      "description": "Search for images by class name or description. Runs a server-side workflow that queries the database, resolves class hierarchy, and returns a complete result set with navigation context. The server orchestrates the queries — the LLM receives pre-assembled messages, not raw tool calls.",
+      "arguments": [
+        {
+          "name": "query",
+          "description": "Search term: class name (e.g., 'dogs'), relationship phrase (e.g., 'person riding horse'), or descriptive text",
+          "required": true
+        }
+      ],
+      "_comment": "This prompt is the structured entry point (e.g., /find_images dogs). The server's prompt handler executes a pre-designed workflow: (1) resolve query to class hierarchy, (2) query labeled_images for matches, (3) query class_hierarchy for subcategories, (4) query hierarchy_relationships for relationship context, (5) assemble and return messages. The workflow may internally call the find_images tool logic, but from the protocol perspective the client sends a prompt and receives messages — no tool call is visible to the client or LLM.",
+      "server_workflow": {
+        "steps": [
+          "Resolve query string to class name(s) via class_hierarchy view (fuzzy match on display_name)",
+          "Query labeled_images for matching images (limit 20, ordered by confidence)",
+          "Query class_hierarchy for children of matched class (subcategory facets)",
+          "Query hierarchy_relationships for relationship types involving matched class (relationship facets, excluding 'is')",
+          "Assemble three-layer response: structuredContent (model-readable summary), content (conversation guidance text), _meta (widget data with images, hierarchy_context, facets)"
+        ],
+        "returns": "messages array — conversation context for the LLM + structured content for widget rendering",
+        "widget": "results-grid (via _meta.ui.resourceUri)"
+      }
+    },
+    {
       "name": "start_code_mode",
       "description": "Switch to code mode for advanced SQL queries against the Open Images database. Loads the schema reference and enables SQL generation for queries that go beyond the standard tools.",
       "arguments": [],

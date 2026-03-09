@@ -103,13 +103,14 @@ User switches to advanced SQL query mode.
 | Step | Actor | Action | Data | Next |
 |------|-------|--------|------|------|
 | 1 | **User** | Types `/start_code_mode` in conversation | MCP prompt trigger | Step 2 |
-| 2 | **LLM** | Recognizes MCP prompt. Loads `00-mcp-reference.sql` as context resource. The full schema reference (tables, views, common values, query patterns, pitfalls) is now in the LLM's context. | Resource: `queries/examples/00-mcp-reference.sql` injected as system context | Step 3 |
-| 3 | **LLM (conversation text)** | "Code mode active. I have the full Open Images schema loaded. You can ask me to write SQL queries for anything -- relationships, hierarchy traversal, image analysis, statistics. Try: 'How many images show a person riding a horse?' or 'What are the most common object combinations?'" | Prompt instructions from `start_code_mode.instructions` | Step 4 |
-| 4 | **User** | "How many images show a person riding a horse?" | Natural language query for SQL generation | Step 5 |
-| 5 | **LLM** | Generates SQL using `hierarchy_relationships` view, ancestor expansion pattern from `00-mcp-reference.sql` Section 3. Uses `ancestor_name_1 = 'Person'` pattern (not `display_name_1 = 'Person'`) to catch Man, Woman, Boy, Girl. Filters `relationship_label != 'is'` per pitfall guidance. | Generated SQL query + explanation | Step 6 |
-| 6 | **LLM (conversation text)** | Returns three parts in conversation text (no widget for code mode): (1) The SQL query in a code block, (2) Explanation of what it does and why it uses ancestor expansion, (3) The results (if executable) or expected output pattern, (4) Follow-up suggestions: "You could also count by relationship type, or find which person subtypes ride horses most often." | Pure text response, no widget | User asks another query or switches to tool mode (Flow 4F) |
+| 2 | **MCP Client** | Sends prompt directly to MCP server. The LLM is **not involved** — the client routes the prompt to the server without LLM interpretation. | Prompt name: `start_code_mode` | Step 3 |
+| 3 | **MCP Server (prompt handler)** | Executes a server-defined workflow: (a) reads `00-mcp-reference.sql` as a resource, (b) assembles messages containing the schema reference, code generation rules, pitfall warnings, and example prompts. Returns messages to the client. The full schema reference (tables, views, common values, query patterns, pitfalls) is now available to the LLM. | Resource: `queries/examples/00-mcp-reference.sql`. Returns: messages array with schema context + instructions | Step 4 |
+| 4 | **LLM (conversation text)** | Uses the server-provided messages to compose a response: "Code mode active. I have the full Open Images schema loaded. You can ask me to write SQL queries for anything -- relationships, hierarchy traversal, image analysis, statistics. Try: 'How many images show a person riding a horse?' or 'What are the most common object combinations?'" | LLM adapts server-provided guidance text | Step 5 |
+| 5 | **User** | "How many images show a person riding a horse?" | Natural language query for SQL generation | Step 6 |
+| 6 | **LLM** | Generates SQL using `hierarchy_relationships` view, ancestor expansion pattern from `00-mcp-reference.sql` Section 3. Uses `ancestor_name_1 = 'Person'` pattern (not `display_name_1 = 'Person'`) to catch Man, Woman, Boy, Girl. Filters `relationship_label != 'is'` per pitfall guidance. | Generated SQL query + explanation | Step 7 |
+| 7 | **LLM (conversation text)** | Returns three parts in conversation text (no widget for code mode): (1) The SQL query in a code block, (2) Explanation of what it does and why it uses ancestor expansion, (3) The results (if executable) or expected output pattern, (4) Follow-up suggestions: "You could also count by relationship type, or find which person subtypes ride horses most often." | Pure text response, no widget | User asks another query or switches to tool mode (Flow 4F) |
 
-**Code mode SQL example (from Step 5):**
+**Code mode SQL example (from Step 6):**
 ```sql
 SELECT COUNT(DISTINCT image_id) AS image_count
 FROM open_images.hierarchy_relationships

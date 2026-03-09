@@ -2,6 +2,28 @@
 
 This document defines the decision framework for choosing between MCP Apps interaction mechanisms. Every widget interaction in the Open Images design can be resolved by consulting this document.
 
+## 0. Prompts vs Tools: Server-Orchestrated vs LLM-Decided
+
+A critical architectural distinction in MCP that shapes all interaction flows:
+
+**MCP Prompts** (e.g., `/find_images dogs`, `/start_code_mode`) are sent directly from the MCP client to the MCP server, **bypassing the LLM entirely**. The server executes a pre-designed workflow — a fixed sequence of queries, resource reads, and data assembly defined by the server developer. The server returns a list of messages that the LLM can use to compose its response. The LLM does not decide what to query or how to structure the result — it receives pre-assembled context.
+
+**MCP Tools** (e.g., `find_images`, `get_image_details`) are invoked by the LLM during its reasoning. The LLM decides *when* to call a tool, *which* tool to call, and *what arguments* to pass. The tool executes on the server and returns results to the LLM, which then reasons about them and composes a response.
+
+**Why this matters for design:**
+- Prompt-triggered workflows are **deterministic** — same input always produces same server behavior regardless of which LLM hosts the client
+- Tool calls are **LLM-dependent** — the LLM may call the wrong tool, pass wrong arguments, or not call a tool at all
+- A prompt can internally use the same logic as a tool, but the orchestration is server-controlled, not LLM-controlled
+- Prompts pre-load the LLM context with everything it needs for follow-up conversation (hierarchy context, narrowing suggestions, relationship data)
+
+**In this design:**
+- `/find_images {query}` is a prompt: server runs a workflow that queries views, assembles results + context, returns messages
+- `/start_code_mode` is a prompt: server loads `00-mcp-reference.sql` as context, returns instructions
+- `find_images(query)` is also a tool: LLM calls it during free-form conversation when it decides a search is needed
+- The prompt and tool may share server-side implementation, but the entry path differs
+
+---
+
 ## 1. Three Interaction Mechanisms
 
 ### tools/call -- Silent In-Widget Data Refresh
