@@ -87,7 +87,7 @@ Table with columns:
 
 #### Relationships Section
 
-- List format: `"{display_name_1} [{relationship_label}] {display_name_2}"` with confidence percentage
+- List format: `"{display_name_1} [{relationship_label}] {display_name_2}"`
 - **Default:** Filter out relationships where `relationship_label == "is"` (attribute/state relationships dominate at 81.8%)
 - **Toggle:** Checkbox `"Show 'is' relationships"` at bottom of section. When checked, includes attribute relationships.
 - Clicking a relationship triggers `ui/message`: `"Find images where {display_name_1} {relationship_label} {display_name_2} [find_images]"` (LLM maps to `{ subject: "{parent_of_display_name_1}", relationship: "{relationship_label}", object: "{parent_of_display_name_2}" }` — widget resolves leaf→parent using `navigate_actions.by_relationship[]`)

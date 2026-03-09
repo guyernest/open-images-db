@@ -39,16 +39,14 @@ A critical architectural distinction in MCP that shapes all interaction flows:
 **Code pattern:**
 ```javascript
 // Widget calls find_images directly via App SDK bridge with current selection state
-const result = await app.callServerTool({
-  name: "find_images",
-  arguments: {
-    subject: activeSubjects.length === 1 ? activeSubjects[0] : activeSubjects,
-    relationship: activeRelationships.length === 1 ? activeRelationships[0] : activeRelationships,
-    object: activeObjects.length === 1 ? activeObjects[0] : activeObjects,
-    page: 1,
-    limit: 20
-  }
-});
+// Only include dimensions that have active selections — omit empty dimensions per schema
+const args = { page: 1, limit: 20 };
+if (activeSubjects.length === 1) args.subject = activeSubjects[0];
+else if (activeSubjects.length > 1) args.subject = activeSubjects;
+if (activeRelationships.length === 1) args.relationship = activeRelationships[0];
+else if (activeRelationships.length > 1) args.relationship = activeRelationships;
+
+const result = await app.callServerTool({ name: "find_images", arguments: args });
 // Widget re-renders with the returned data
 if (result?.structuredContent) {
   updateGrid(result.structuredContent, result._meta);
@@ -105,7 +103,8 @@ window.parent.postMessage({
     context: {
       current_view: "results-grid",
       visible_images: ["000a1249af2bc5f0", "000b2349bf3cd6e1"],
-      active_filters: ["category:Poodle"],
+      active_subjects: ["Poodle"],
+      active_relationships: [],
       scroll_position: "middle"
     }
   }
@@ -138,16 +137,16 @@ Use this tree to determine which mechanism to use for any widget interaction.
     - Triggers: LLM calls `get_image_details`, producing a new image-detail widget
     - Message text: "Show me details for image {image_id} [get_image_details]"
     - Current results grid freezes; new detail widget appears below
-  - "Show me more like this" from detail view --> `ui/message`
-    - Triggers: LLM calls `find_images` with related query
-    - Message text: "Find images similar to {image_id} with {primary_label} [find_images]"
+  - "More with {subject}" from detail view (via `navigate_actions.by_subject[]`) --> `ui/message`
+    - Triggers: LLM calls `find_images` with `{ subject }` from pre-computed args
+    - Message text: "Find more images of {subject} [find_images]"
     - New results grid widget appears below the detail widget
-  - "What else is in this scene?" from detail view --> `ui/message`
-    - Triggers: LLM calls `find_images` with relationship filter
-    - Message text: "Find images with {relationship} involving {object} [find_images]"
-  - "Browse this category" from detail view --> `ui/message`
-    - Triggers: LLM calls `explore_category` with the object's parent class
-    - Message text: "Explore the {category_name} category hierarchy [explore_category]"
+  - "{subject} {relationship} {object}" from detail view (via `navigate_actions.by_relationship[]`) --> `ui/message`
+    - Triggers: LLM calls `find_images` with `{ subject, relationship, object }` from pre-computed args (leaf→parent resolved)
+    - Message text: "Find images where {subject} {relationship} {object} [find_images]"
+  - "Explore {category}" from detail view (via `navigate_actions.explore_category`) --> `ui/message`
+    - Triggers: LLM calls `explore_category` with `{ class_name }` from pre-computed args
+    - Message text: "Explore the {class_name} category hierarchy [explore_category]"
 
 - **Does the model need to know what the user is looking at?** --> `ui/update-model-context`
   - User scrolls to a different section of results
@@ -180,34 +179,34 @@ Every `ui/message` action has a fallback for when the LLM does not trigger the e
 - The widget remains in grid view (no detail widget appears)
 - Widget can detect this by listening for a new tool response -- if none arrives within 10 seconds, show the text fallback
 
-### "Show Me More Like This"
+### "More with {subject}" (navigate_actions.by_subject[])
 
-**Primary path:** Widget sends `ui/message` with text: "Find images similar to {image_id} with {label} [find_images]"
+**Primary path:** Widget sends `ui/message` with text: "Find more images of {subject} [find_images]"
 
 **Fallback after 5 seconds:**
 - Widget shows hint below the action button:
   ```
-  Try typing: "Find more images of {label}"
+  Try typing: "Find more images of {subject}"
   ```
 
-### "What Else Is in This Scene?"
+### "{subject} {relationship} {object}" (navigate_actions.by_relationship[])
 
-**Primary path:** Widget sends `ui/message` with text: "Find images with {relationship} involving {object_name} [find_images]"
+**Primary path:** Widget sends `ui/message` with text: "Find images where {subject} {relationship} {object} [find_images]"
 
 **Fallback after 5 seconds:**
 - Widget shows hint:
   ```
-  Try typing: "Find images where something {relationship} a {object_name}"
+  Try typing: "Find images where {subject} {relationship} {object}"
   ```
 
-### "Browse This Category"
+### "Explore {category}" (navigate_actions.explore_category)
 
-**Primary path:** Widget sends `ui/message` with text: "Explore the {category_name} category hierarchy [explore_category]"
+**Primary path:** Widget sends `ui/message` with text: "Explore the {class_name} category hierarchy [explore_category]"
 
 **Fallback after 5 seconds:**
 - Widget shows hint:
   ```
-  Try typing: "Show me the {category_name} category tree"
+  Try typing: "Show me the {class_name} category tree"
   ```
 
 ### Design Principles for ui/message Text
@@ -216,7 +215,7 @@ To maximize the probability that the LLM calls the right tool:
 
 1. **Include the tool name hint** in brackets at the end: `[get_image_details]`
 2. **Use the exact parameter names** from the tool's inputSchema: "image {image_id}" not "that picture"
-3. **Be specific about the action**, not vague: "Find images with relationship:ride involving Horse" not "show me related things"
+3. **Be specific about the action**, not vague: "Find images where Person ride Horse" not "show me related things"
 4. **Keep the message short** -- long messages give the LLM more room to interpret differently
 
 
@@ -288,7 +287,7 @@ User clicks "Poodle" facet in results grid
 Widget (results-grid.html)
   | Toggles "Poodle" in local activeSubjects[]
   | Constructs full find_images args from current selection state
-  | app.callServerTool({ name: "find_images", arguments: { subject: ["Poodle"], page: 1 } })
+  | app.callServerTool({ name: "find_images", arguments: { subject: "Poodle", page: 1 } })
   |
   v
 MCP Server

@@ -472,7 +472,8 @@
                   "type": "object",
                   "properties": {
                     "id": { "type": "string" },
-                    "thumbnail_300k_url": { "type": "string" }
+                    "thumbnail_300k_url": { "type": "string" },
+                    "class_name": { "type": "string", "description": "Which class this sample belongs to, for mapping to the correct tree node" }
                   }
                 }
               }

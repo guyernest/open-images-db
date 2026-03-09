@@ -172,7 +172,7 @@ Every user action maps to a mechanism from the interaction model (`design/patter
 | Remove active facet toggle | `tools/call` | `find_images` | Remaining selections as args, `page: 1` | Remove value from local selection, re-query. Replace grid. Reset pagination. |
 | Click "Load more" | `tools/call` | `find_images` | Current selections as args, `page: {current_page + 1}` | Append new images to existing grid. Update "Showing X of Y" count. Increment current_page. |
 | Click image thumbnail | `ui/message` | (triggers `get_image_details`) | Message: `"Show details for image {id} [get_image_details]"` | Show loading overlay on clicked thumbnail (spinner + dimmed). After 5s without response: show fallback text "Try typing: Show details for image {id}". Widget freezes when new detail widget appears below. |
-| Click "Clear all filters" | `tools/call` | `find_images` | `subject: {original_subject}`, no other args, `page: 1` | Clear local selection state. Reset grid to unfiltered results. Reset pagination. |
+| Click "Clear all filters" | `tools/call` | `find_images` | `original_query` args (preserves initial subject/relationship/object), `page: 1` | Clear local selection state. Reset grid to unfiltered results. Reset pagination. |
 
 ### Loading States
 
@@ -196,8 +196,7 @@ The widget maintains this internal state:
   // Selection state — the widget IS the query
   active_subjects: string[],       // e.g., ["Poodle"] — toggled category facets
   active_relationships: string[],  // e.g., ["ride", "on"] — toggled relationship facets
-  active_objects: string[],        // e.g., ["Horse"] — toggled object facets
-  original_subject: string|null,   // The initial subject from first find_images (for "clear all")
+  original_query: object,          // The initial find_images args (for "clear all" — preserves subject, relationship, object)
 
   // Display state
   current_page: number,            // Current pagination page (1-indexed)
@@ -212,14 +211,12 @@ The widget maintains this internal state:
 
 The widget constructs `find_images` args from local state on every interaction:
 ```javascript
-function buildFindImagesArgs() {
-  const args = { page: 1, limit: 20 };
+function buildFindImagesArgs(page = 1) {
+  const args = { page, limit: 20 };
   if (active_subjects.length === 1) args.subject = active_subjects[0];
   else if (active_subjects.length > 1) args.subject = active_subjects;
   if (active_relationships.length === 1) args.relationship = active_relationships[0];
   else if (active_relationships.length > 1) args.relationship = active_relationships;
-  if (active_objects.length === 1) args.object = active_objects[0];
-  else if (active_objects.length > 1) args.object = active_objects;
   return args;
 }
 ```
@@ -228,10 +225,10 @@ function buildFindImagesArgs() {
 
 | Trigger | State Change |
 |---------|-------------|
-| Initial render (from `find_images`) | Parse `_meta.images` into `loaded_images`. Set `original_subject` from the initial query subject. Set `current_page` from `structuredContent.page`. Populate `facets` from `structuredContent.facets`. All active arrays = empty (initial results show unfiltered). |
-| Facet toggle (from `find_images` via `tools/call`) | Add/remove value in the appropriate active array. Call `find_images` with `buildFindImagesArgs()`. REPLACE `loaded_images` with new response. Update `facets` from new response. Reset `current_page` to 1. |
-| Load more (from `find_images` via `tools/call`) | Call `find_images` with current args + `page: current_page + 1`. APPEND new images to `loaded_images`. Increment `current_page`. Selections and facets unchanged. |
-| Clear all filters | Clear all active arrays. Call `find_images` with `subject: original_subject`. REPLACE `loaded_images`. Reset `current_page` to 1. |
+| Initial render (from `find_images`) | Parse `_meta.images` into `loaded_images`. Store full initial args as `original_query` (preserves subject, relationship, object if present). Set `current_page` from `structuredContent.page`. Populate `facets` from `structuredContent.facets`. All active arrays = empty (initial results show unfiltered). |
+| Facet toggle (from `find_images` via `tools/call`) | Add/remove value in the appropriate active array. Call `find_images` with `buildFindImagesArgs(1)`. REPLACE `loaded_images` with new response. Update `facets` from new response. Reset `current_page` to 1. |
+| Load more (from `find_images` via `tools/call`) | Call `find_images` with `buildFindImagesArgs(current_page + 1)`. APPEND new images to `loaded_images`. Increment `current_page`. Selections and facets unchanged. |
+| Clear all filters | Clear all active arrays. Call `find_images` with `original_query` args. REPLACE `loaded_images`. Reset `current_page` to 1. |
 
 ### Request Cancellation
 
