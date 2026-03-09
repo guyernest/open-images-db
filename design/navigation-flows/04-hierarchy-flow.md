@@ -70,7 +70,7 @@ User wants to see actual images for a category.
 | Step | Actor | Action | Data | Next |
 |------|-------|--------|------|------|
 | 1 | **User** | Clicks "View all images" button on the Dog category node | Grid transition request | Step 2 |
-| 2 | **Widget (hierarchy-browser)** | Calls `tools/call find_images` with category filter | `app.callServerTool({ name: "find_images", arguments: { query: "Dog" } })` | Step 3 |
+| 2 | **Widget (hierarchy-browser)** | Calls `tools/call find_images` with subject | `app.callServerTool({ name: "find_images", arguments: { subject: "Dog" } })` | Step 3 |
 | 3 | **MCP Server** | Queries for Dog images with breed facets. Returns standard `find_images` three-layer response. | Same response as a direct `find_images` call for "Dog" | Step 4 |
 | 4 | **Widget (hierarchy-browser)** | Internal mode transition within the same iframe. Tree view fades out, grid view fades in. Grid shows dog images with subcategory facets (Poodle, German shepherd, Labrador). A "Back to tree" button appears in the top-left. | Widget manages two internal modes: tree and grid. Same iframe, no new conversation turn. | Step 5 |
 | 5 | **User** | Browses the grid. Can click facets (same as Flow 2A in `02-refinement-flow.md`), paginate, or click thumbnails. | Standard grid interactions via `tools/call find_images` | User clicks "Back to tree" (Step 6) or continues in grid |
@@ -136,7 +136,7 @@ User wants to see images instead of SQL results.
 | Step | Actor | Action | Data | Next |
 |------|-------|--------|------|------|
 | 1 | **User** (in code mode) | "Actually, can you show me those horse riding images?" | Intent to switch from SQL to visual browsing | Step 2 |
-| 2 | **LLM** | Recognizes intent to switch to visual mode. Calls `find_images` with parameters derived from the code mode context (Person + Horse + ride relationship). | `{ query: "people riding horses", relationship: "ride" }` | Step 3 |
+| 2 | **LLM** | Recognizes intent to switch to visual mode. Decomposes the code mode context into structured args. | `{ subject: "Person", relationship: "ride", object: "Horse" }` | Step 3 |
 | 3 | **MCP Server** | Standard `find_images` query. Returns visual results. | Same as Flow 1B in `01-search-flow.md` | Step 4 |
 | 4 | **Widget (results-grid)** | Results-grid widget appears in conversation. User is now in visual tool mode. | Standard grid with facets | Step 5 |
 | 5 | **LLM (conversation text)** | "Here are the images. You're now in visual browsing mode -- click any image for details, or use the facets to filter. To return to code mode, type `/start_code_mode` again." | Signals mode transition | User continues in tool mode or re-enters code mode |

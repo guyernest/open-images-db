@@ -59,7 +59,7 @@ Two-panel vertical layout within the iframe. Target viewport: 600-800px wide.
 | [ ] Show 'is' relationships                               |
 |----------------------------------------------------------|
 | ACTIONS                                                   |
-| [More with Dog] [Similar scenes] [Explore Animal]         |
+| [More with Dog] [Person ride Horse] [Explore Animal]      |
 +----------------------------------------------------------+
 ```
 
@@ -83,25 +83,43 @@ Table with columns:
 | Confidence | `_meta.labels[].confidence` | Percentage bar (filled proportional to value) + percentage text |
 
 - Sorted by confidence descending
-- Clicking a label name triggers `ui/message`: `"Find more images of {display_name} [find_images]"`
+- Clicking a label name triggers `ui/message`: `"Find more images of {display_name} [find_images]"` (LLM maps to `{ subject: "{display_name}" }`)
 
 #### Relationships Section
 
 - List format: `"{display_name_1} [{relationship_label}] {display_name_2}"` with confidence percentage
 - **Default:** Filter out relationships where `relationship_label == "is"` (attribute/state relationships dominate at 81.8%)
 - **Toggle:** Checkbox `"Show 'is' relationships"` at bottom of section. When checked, includes attribute relationships.
-- Clicking a relationship triggers `ui/message`: `"Find images where {display_name_1} {relationship_label} {display_name_2} [find_images]"`
+- Clicking a relationship triggers `ui/message`: `"Find images where {display_name_1} {relationship_label} {display_name_2} [find_images]"` (LLM maps to `{ subject: "{parent_of_display_name_1}", relationship: "{relationship_label}", object: "{parent_of_display_name_2}" }` — widget resolves leaf→parent using `navigate_actions.by_relationship[]`)
 - If no relationships exist: show "No relationships annotated for this image."
 
 #### Navigate-From-Image Actions
 
-Button row at the bottom of the info panel:
+Button row at the bottom of the info panel. All buttons are derived from `_meta.navigate_actions` — the server pre-computes structured `find_images` args with leaf→parent resolution (Man→Person).
 
-| Button Text | Mechanism | Message Text | Source Data |
-|-------------|-----------|-------------|-------------|
-| "More with {primary_label}" | `ui/message` | `"Find more images of {primary_label} [find_images]"` | `_meta.navigate_actions.more_like_this` or first label |
-| "Similar scenes" | `ui/message` | `"Find images with similar objects to image {id} [find_images]"` | Uses the image's label set for context |
-| "Explore {category}" | `ui/message` | `"Explore the {root_category} category hierarchy [explore_category]"` | `_meta.navigate_actions.same_category` or derive from `_meta.labels[0]` hierarchy |
+**Subject buttons** (from `navigate_actions.by_subject[]`):
+
+| Button Text | Mechanism | Message Text | Pre-computed Args |
+|-------------|-----------|-------------|-------------------|
+| `by_subject[].label` (e.g., "More with Dog") | `ui/message` | `"Find more images of {subject} [find_images]"` | `{ subject: "Dog" }` |
+
+One button per distinct subject label in the image.
+
+**Relationship buttons** (from `navigate_actions.by_relationship[]`):
+
+| Button Text | Mechanism | Message Text | Pre-computed Args |
+|-------------|-----------|-------------|-------------------|
+| `by_relationship[].label` (e.g., "Person ride Horse") | `ui/message` | `"Find images where {subject} {relationship} {object} [find_images]"` | `{ subject: "Person", relationship: "ride", object: "Horse" }` |
+
+One button per distinct relationship triple. Uses parent classes for broader results.
+
+**Category button** (from `navigate_actions.explore_category`):
+
+| Button Text | Mechanism | Message Text | Pre-computed Args |
+|-------------|-----------|-------------|-------------------|
+| `explore_category.label` (e.g., "Explore Animal") | `ui/message` | `"Explore the {class_name} category hierarchy [explore_category]"` | `{ class_name: "Animal" }` |
+
+Single button for the primary object's parent category.
 
 - All buttons follow the fallback pattern: after 5 seconds without LLM response, show copy-paste hint text below the button (e.g., `Try typing: "Find more images of Dog"`)
 - Buttons disabled while a `ui/message` is pending (prevent double-send)
@@ -175,10 +193,26 @@ Button row at the bottom of the info panel:
     }
   ],
   "navigate_actions": {
-    "more_like_this": "string -- query for similar images by primary label",
-    "same_objects": ["string -- queries for images with same objects"],
-    "same_relationships": ["string -- queries for same relationship patterns"],
-    "same_category": "string -- query to browse parent category"
+    "by_subject": [
+      {
+        "label": "string -- button text (e.g., 'More with Dog')",
+        "find_images_args": { "subject": "string -- class name" }
+      }
+    ],
+    "by_relationship": [
+      {
+        "label": "string -- button text (e.g., 'Person ride Horse')",
+        "find_images_args": {
+          "subject": "string -- parent class (Man→Person)",
+          "relationship": "string -- relationship type",
+          "object": "string -- parent class"
+        }
+      }
+    ],
+    "explore_category": {
+      "label": "string -- button text (e.g., 'Explore Animal')",
+      "class_name": "string -- parent category for explore_category tool"
+    }
   }
 }
 ```
@@ -190,9 +224,11 @@ Button row at the bottom of the info panel:
 | Toggle "Boxes" layer | Local state | Show/hide all bounding box `<div>` overlays. Label badges above boxes also hide. |
 | Toggle "Labels" layer | Local state | Show/hide label text badges on bounding boxes. Boxes remain visible if "Boxes" is on. |
 | Toggle "Relationships" layer | Local state | Show/hide relationship lines and midpoint labels. |
-| Click navigate action button | `ui/message` | Send pre-formatted message text. Disable button. Show spinner on button. After 5s: show fallback copy-paste text below button. |
-| Click label name in info panel | `ui/message` | `"Find more images of {display_name} [find_images]"`. Show fallback after 5s. |
-| Click relationship in info panel | `ui/message` | `"Find images where {display_name_1} {relationship_label} {display_name_2} [find_images]"`. Show fallback after 5s. |
+| Click subject action button | `ui/message` | `"Find more images of {subject} [find_images]"`. LLM maps to `{ subject }`. Disable button, spinner. Fallback after 5s. |
+| Click relationship action button | `ui/message` | `"Find images where {subject} {relationship} {object} [find_images]"`. LLM maps to `{ subject, relationship, object }`. Disable button, spinner. Fallback after 5s. |
+| Click category action button | `ui/message` | `"Explore the {class_name} category hierarchy [explore_category]"`. LLM maps to `{ class_name }`. Disable button, spinner. Fallback after 5s. |
+| Click label name in info panel | `ui/message` | `"Find more images of {display_name} [find_images]"`. LLM maps to `{ subject: display_name }`. Show fallback after 5s. |
+| Click relationship in info panel | `ui/message` | `"Find images where {subject} {relationship} {object} [find_images]"`. Uses parent classes from `navigate_actions.by_relationship[]`. Show fallback after 5s. |
 | Hover bounding box | Local state | Highlight box border (increase width/brightness). Show tooltip with: `display_name`, confidence percentage, flags (occluded/truncated/group/depiction). |
 | Toggle "Show 'is' relationships" | Local state | Re-render relationships list to include/exclude `is` type relationships. |
 

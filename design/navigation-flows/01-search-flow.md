@@ -77,7 +77,7 @@ Example: User types "show me animals"
 
 | Step | Actor | Action | Data | Next |
 |------|-------|--------|------|------|
-| 2A | **LLM** | Calls `find_images` with `query="Animal"` | `{ query: "Animal", limit: 20 }` | Step 3A |
+| 2A | **LLM** | Calls `find_images` with `subject: "Animal"` | `{ subject: "Animal", limit: 20 }` | Step 3A |
 | 3A | **MCP Server** | Queries for Animal class and all descendants. Returns top 20 images with diverse subcategories. Facets show major branches: Bird, Carnivore, Mammal, Invertebrate, Reptile, Fish. | `class_hierarchy` children of Animal at depth+1 as category facets | Step 4A |
 | 4A | **Widget (results-grid)** | Renders grid with animal images. Facet pills show the 6 major animal branches with counts. Count bar shows "2,847+ animal images found." | Large result count signals breadth | Step 5A |
 | 5A | **LLM (conversation text)** | "Found over 2,800 animal images across 6 major branches. The largest groups are Carnivore (1,200+ images including dogs, cats, bears) and Bird (800+ images). Click a category to narrow down, or ask for a specific animal like 'dogs' or 'eagles'." | Suggests narrowing paths based on hierarchy | User decides next action |

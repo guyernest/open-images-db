@@ -95,7 +95,7 @@ Each child node in `_meta.hierarchy_tree.children[]` renders as an expandable ro
 - **Back button:** Top-left, `"< Back to {class_name} hierarchy"`. Returns to Tree Mode (data still in memory, no network call).
 - **Facet row:** Limited to subcategories of the current class (from `_meta.hierarchy_tree.children[]` names). Uses same pill design as results-grid widget.
 - **Image grid:** Same layout as the results-grid widget (3-col/2-col responsive grid with thumbnails).
-- **Data source:** Triggers `tools/call` to `find_images` with `query: {class_name}` when entering grid mode. Widget renders the response images.
+- **Data source:** Triggers `tools/call` to `find_images` with `subject: {class_name}` when entering grid mode. Widget renders the response images.
 - **Pagination:** Same "Load more" pattern as results-grid widget, using `tools/call` to `find_images` with incremented page.
 - **Image click:** Same as results-grid: `ui/message` to `"Show details for image {id} [get_image_details]"` with 5s fallback.
 
@@ -168,7 +168,7 @@ When `include_samples` is false in the tool call, `sample_images` will be an emp
 | Click breadcrumb segment | `tools/call` | `explore_category` | Navigate up to that level. Re-render widget with breadcrumb segment as root. |
 | Expand/collapse node (arrow click) | Local state | none | Toggle children visibility. If children data already loaded, no network call. If children need loading (depth exceeded), trigger `tools/call` to `explore_category` with `depth: 2`. |
 | Click sample thumbnail | `ui/message` | (triggers `get_image_details`) | `"Show details for image {id} [get_image_details]"`. Show fallback text after 5s. |
-| Click "View all images" | `tools/call` | `find_images` | Transition to Grid Mode. Query: `find_images({ query: "{class_name}" })`. Show loading spinner during transition. |
+| Click "View all images" | `tools/call` | `find_images` | Transition to Grid Mode. Call: `find_images({ subject: "{class_name}" })`. Show loading spinner during transition. |
 
 ### Grid Mode Interactions
 

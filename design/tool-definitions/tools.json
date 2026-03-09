@@ -322,25 +322,51 @@
               },
               "navigate_actions": {
                 "type": "object",
-                "description": "Pre-computed navigation suggestions for 'explore from this image' actions",
+                "description": "Pre-computed navigation actions with structured find_images args. Server resolves leaf classes to parent classes (Man→Person) so the widget and LLM get ready-to-use arguments.",
                 "properties": {
-                  "more_like_this": {
-                    "type": "string",
-                    "description": "Query to find visually similar images (primary label as search term)"
-                  },
-                  "same_objects": {
+                  "by_subject": {
                     "type": "array",
-                    "items": { "type": "string" },
-                    "description": "Queries to find images with the same objects"
+                    "description": "One entry per distinct subject in the image. Each provides a button label and pre-computed find_images args.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": { "type": "string", "description": "Button text (e.g., 'More with Dog')" },
+                        "find_images_args": {
+                          "type": "object",
+                          "description": "Pre-computed args for find_images",
+                          "properties": {
+                            "subject": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
                   },
-                  "same_relationships": {
+                  "by_relationship": {
                     "type": "array",
-                    "items": { "type": "string" },
-                    "description": "Queries to find images with the same relationship patterns"
+                    "description": "One entry per distinct relationship triple in the image. Uses parent classes (Person not Man) for broader results.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": { "type": "string", "description": "Button text (e.g., 'Person ride Horse')" },
+                        "find_images_args": {
+                          "type": "object",
+                          "description": "Pre-computed args for find_images",
+                          "properties": {
+                            "subject": { "type": "string" },
+                            "relationship": { "type": "string" },
+                            "object": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
                   },
-                  "same_category": {
-                    "type": "string",
-                    "description": "Query to browse the parent category of the primary object"
+                  "explore_category": {
+                    "type": "object",
+                    "description": "Navigate to the parent category of the primary object in the hierarchy",
+                    "properties": {
+                      "label": { "type": "string", "description": "Button text (e.g., 'Explore Animal')" },
+                      "class_name": { "type": "string", "description": "Parent class name for explore_category tool" }
+                    }
                   }
                 }
               }
