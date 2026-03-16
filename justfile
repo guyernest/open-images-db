@@ -45,7 +45,7 @@ dry-run-tables:
 launch-full-load:
     bash {{scripts_dir}}/launch-pipeline.sh \
       --userdata {{scripts_dir}}/ec2-userdata-full-load.sh \
-      --instance-type c5n.large \
+      --instance-type t3.medium \
       --ebs-size 20 \
       --tag open-images-full-load
 

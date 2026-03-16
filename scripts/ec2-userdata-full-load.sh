@@ -4,10 +4,9 @@ set -euo pipefail
 # =============================================================================
 # ec2-userdata-full-load.sh -- EC2 bootstrap for Open Images full dataset load
 #
-# Runs as root on Amazon Linux 2023. Downloads pipeline scripts from S3,
-# downloads all annotation CSVs for 3 splits (train/val/test), and syncs
-# all 1.9M images (561 GB) from the public CVDF S3 bucket to our bucket
-# via S3-to-S3 sync (no local disk required for image transfer).
+# Runs as root on Amazon Linux 2023. Downloads pipeline scripts from S3
+# and annotation CSVs for all 3 splits (train/val/test).
+# Images are NOT copied — served directly from the CVDF public bucket.
 # Self-terminates on exit (success or failure) via EXIT trap.
 #
 # Placeholder: BUCKET is injected by launch-pipeline.sh via sed substitution.
