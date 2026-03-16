@@ -74,6 +74,21 @@ describe('Glue', () => {
       },
     });
   });
+
+  test('full database has name open_images_full and locationUri with warehouse-full/', () => {
+    template.hasResourceProperties('AWS::Glue::Database', {
+      DatabaseInput: {
+        Name: 'open_images_full',
+        LocationUri: Match.objectLike({
+          'Fn::Join': Match.arrayWith([
+            Match.arrayWith([
+              Match.stringLikeRegexp('warehouse-full/'),
+            ]),
+          ]),
+        }),
+      },
+    });
+  });
 });
 
 describe('Athena', () => {
@@ -171,6 +186,55 @@ describe('IAM', () => {
               'athena:StartQueryExecution',
               'athena:GetQueryExecution',
               'athena:GetQueryResults',
+            ]),
+          }),
+        ]),
+      },
+    });
+  });
+});
+
+describe('EC2', () => {
+  const template = createTemplate();
+
+  test('instance profile exists with name open-images-ec2-profile', () => {
+    template.hasResourceProperties('AWS::IAM::InstanceProfile', {
+      InstanceProfileName: 'open-images-ec2-profile',
+    });
+  });
+
+  test('EC2 role has Glue permissions covering database/open_images_full', () => {
+    template.hasResourceProperties('AWS::IAM::Role', {
+      RoleName: 'open-images-ec2-role',
+      AssumeRolePolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Principal: {
+              Service: 'ec2.amazonaws.com',
+            },
+          }),
+        ]),
+      }),
+    });
+  });
+
+  test('EC2 role inline policy includes Glue permissions for open_images_full', () => {
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: Match.arrayWith([
+              'glue:GetDatabase',
+              'glue:CreateTable',
+            ]),
+            Resource: Match.arrayWith([
+              Match.objectLike({
+                'Fn::Join': Match.arrayWith([
+                  Match.arrayWith([
+                    Match.stringLikeRegexp('database/open_images_full'),
+                  ]),
+                ]),
+              }),
             ]),
           }),
         ]),

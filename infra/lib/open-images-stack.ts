@@ -38,6 +38,16 @@ export class OpenImagesStack extends cdk.Stack {
       },
     });
 
+    // ---- Glue Database Full (EVAL-01) ----
+    new glue.CfnDatabase(this, 'DatabaseFull', {
+      catalogId: this.account,
+      databaseInput: {
+        name: 'open_images_full',
+        description: 'Open Images V7 full dataset (all splits) in Iceberg format',
+        locationUri: `s3://${bucket.bucketName}/warehouse-full/`,
+      },
+    });
+
     // ---- Athena Workgroup (INFRA-03) ----
     const workgroup = new athena.CfnWorkGroup(this, 'Workgroup', {
       name: 'open-images',
@@ -117,6 +127,55 @@ export class OpenImagesStack extends cdk.Stack {
       ],
     });
 
+    // ---- EC2 Instance Profile (EVAL-02) ----
+    // Role for EC2 pipeline instance: S3 access (via athenaAccessPolicy) +
+    // Glue access for open_images_full database + CloudFormation for bucket discovery
+    const ec2Role = new iam.Role(this, 'Ec2Role', {
+      roleName: 'open-images-ec2-role',
+      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
+      description: 'Role for Open Images data acquisition EC2 instance',
+    });
+
+    // Reuse the existing athena-access policy which already has S3 read/write on bucket
+    ec2Role.addManagedPolicy(athenaAccessPolicy);
+
+    // Glue permissions for open_images_full database (full-load pipeline)
+    ec2Role.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'glue:GetDatabase',
+        'glue:GetDatabases',
+        'glue:GetTable',
+        'glue:GetTables',
+        'glue:GetPartition',
+        'glue:GetPartitions',
+        'glue:CreateTable',
+        'glue:UpdateTable',
+        'glue:DeleteTable',
+        'glue:BatchGetPartition',
+      ],
+      resources: [
+        this.formatArn({ service: 'glue', resource: 'catalog' }),
+        this.formatArn({ service: 'glue', resource: 'database', resourceName: 'open_images_full' }),
+        this.formatArn({ service: 'glue', resource: 'table', resourceName: 'open_images_full/*' }),
+      ],
+    }));
+
+    // CloudFormation: bucket discovery via describe-stacks (used by common.sh)
+    ec2Role.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['cloudformation:DescribeStacks'],
+      resources: [
+        this.formatArn({ service: 'cloudformation', resource: 'stack', resourceName: 'OpenImagesStack/*' }),
+      ],
+    }));
+
+    // Instance profile referencing the role (named for use in launch scripts)
+    const ec2InstanceProfile = new iam.CfnInstanceProfile(this, 'Ec2InstanceProfile', {
+      instanceProfileName: 'open-images-ec2-profile',
+      roles: [ec2Role.roleName],
+    });
+
     // ---- Outputs ----
     new cdk.CfnOutput(this, 'BucketName', {
       value: bucket.bucketName,
@@ -130,6 +189,10 @@ export class OpenImagesStack extends cdk.Stack {
       value: 'open_images',
       exportName: 'open-images-database-name',
     });
+    new cdk.CfnOutput(this, 'DatabaseFullName', {
+      value: 'open_images_full',
+      exportName: 'open-images-full-database-name',
+    });
     new cdk.CfnOutput(this, 'WorkgroupName', {
       value: 'open-images',
       exportName: 'open-images-workgroup-name',
@@ -137,6 +200,10 @@ export class OpenImagesStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'AthenaAccessPolicyArn', {
       value: athenaAccessPolicy.managedPolicyArn,
       exportName: 'open-images-athena-policy-arn',
+    });
+    new cdk.CfnOutput(this, 'Ec2InstanceProfileName', {
+      value: ec2InstanceProfile.instanceProfileName!,
+      exportName: 'open-images-ec2-instance-profile',
     });
   }
 }
