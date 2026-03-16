@@ -41,9 +41,9 @@ create-views *args="":
 dry-run-tables:
     bash {{scripts_dir}}/create-tables.sh --dry-run
 
-# ─── Full dataset pipeline (all 3 splits, 561 GB) ─────────────────────────────
+# ─── Full dataset pipeline (all 3 splits, 1.9M images) ─────────────────────────
 
-# Launch EC2 to sync all 3 image splits + download annotations (~4-5 hours, 561 GB)
+# Launch EC2 to download annotation CSVs for all splits (~30 min, images served from CVDF)
 launch-full-load:
     bash {{scripts_dir}}/launch-pipeline.sh \
       --userdata {{scripts_dir}}/ec2-userdata-full-load.sh \
