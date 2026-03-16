@@ -11,7 +11,7 @@ set -euo pipefail
 AWS_PROFILE_FLAG=()
 
 # Default temp directory (configurable via environment variable)
-TEMP_DIR="${OPEN_IMAGES_TEMP:-$HOME/open-images-tmp}"
+TEMP_DIR="${OPEN_IMAGES_TEMP:-${HOME:-/tmp}/open-images-tmp}"
 
 # CloudFormation stack name for bucket discovery
 readonly CF_STACK_NAME="OpenImagesStack"
