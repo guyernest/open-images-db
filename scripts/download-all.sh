@@ -135,7 +135,7 @@ generate_manifest() {
   aws s3api list-objects-v2 \
     --bucket "$bucket" \
     --prefix "raw/" \
-    --profile "$AWS_PROFILE" \
+    "${AWS_PROFILE_FLAG[@]}" \
     --query 'Contents[].{Key:Key,Size:Size,LastModified:LastModified}' \
     --output json 2>/dev/null \
     | jq '.' > "$temp_dir/manifest.json"
@@ -146,7 +146,7 @@ generate_manifest() {
 
   # Upload manifest to S3
   aws s3 cp "$temp_dir/manifest.json" "s3://$bucket/raw/manifest.json" \
-    --profile "$AWS_PROFILE" \
+    "${AWS_PROFILE_FLAG[@]}" \
     --no-progress
   log_info "Manifest uploaded to s3://$bucket/raw/manifest.json"
 }

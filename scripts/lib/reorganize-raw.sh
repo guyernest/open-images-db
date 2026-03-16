@@ -31,7 +31,7 @@ copy_raw_file() {
   aws s3 cp \
     "s3://${bucket}/${src_key}" \
     "s3://${bucket}/${dest_key}" \
-    --profile "$AWS_PROFILE" \
+    "${AWS_PROFILE_FLAG[@]}" \
     --no-progress || {
     log_error "Failed to copy ${src_key} -> ${dest_key}"
     return 1

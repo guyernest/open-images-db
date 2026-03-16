@@ -87,7 +87,7 @@ get_result_row_count() {
   local result_json
   result_json=$(aws athena get-query-results \
     --query-execution-id "$ATHENA_LAST_QUERY_ID" \
-    --profile "$AWS_PROFILE" \
+    "${AWS_PROFILE_FLAG[@]}" \
     --output json) || { echo "0"; return 1; }
   # ResultSet.Rows includes header row at index 0
   local total_rows
@@ -99,7 +99,7 @@ get_result_row_count() {
 get_result_scalar() {
   aws athena get-query-results \
     --query-execution-id "$ATHENA_LAST_QUERY_ID" \
-    --profile "$AWS_PROFILE" \
+    "${AWS_PROFILE_FLAG[@]}" \
     --output text \
     --query 'ResultSet.Rows[1].Data[0].VarCharValue' 2>/dev/null || echo ""
 }
@@ -108,7 +108,7 @@ get_result_scalar() {
 get_result_column() {
   aws athena get-query-results \
     --query-execution-id "$ATHENA_LAST_QUERY_ID" \
-    --profile "$AWS_PROFILE" \
+    "${AWS_PROFILE_FLAG[@]}" \
     --output json 2>/dev/null | jq -r '.ResultSet.Rows[1:][].Data[0].VarCharValue' || echo ""
 }
 

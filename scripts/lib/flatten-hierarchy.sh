@@ -82,7 +82,7 @@ flatten_hierarchy() {
   log_info "Uploading to $s3_dest"
 
   aws s3 cp "$temp_csv" "$s3_dest" \
-    --profile "$AWS_PROFILE" \
+    "${AWS_PROFILE_FLAG[@]}" \
     --no-progress || {
     log_error "Failed to upload hierarchy CSV to S3"
     return 1
