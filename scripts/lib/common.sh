@@ -5,15 +5,10 @@ set -euo pipefail
 # common.sh -- Shared functions for Open Images data acquisition pipeline
 # =============================================================================
 
-# AWS profile / credential mode for all AWS CLI calls
-# Set OPEN_IMAGES_NO_PROFILE=1 on EC2 to use instance role credentials (no named profile)
-if [[ "${OPEN_IMAGES_NO_PROFILE:-}" == "1" ]]; then
-  readonly AWS_PROFILE=""
-  AWS_PROFILE_FLAG=()
-else
-  readonly AWS_PROFILE="${AWS_PROFILE:-ze-kasher-dev}"
-  AWS_PROFILE_FLAG=(--profile "$AWS_PROFILE")
-fi
+# AWS credentials: use whatever is in the environment (set by `assume <profile>`,
+# AWS_PROFILE, instance role, etc.). No hardcoded profile — portable across accounts.
+# AWS_PROFILE_FLAG kept as empty array for backward compatibility with call sites.
+AWS_PROFILE_FLAG=()
 
 # Default temp directory (configurable via environment variable)
 TEMP_DIR="${OPEN_IMAGES_TEMP:-$HOME/open-images-tmp}"
@@ -55,22 +50,14 @@ check_prerequisites() {
     return 1
   fi
 
-  # Verify AWS credentials work with the expected profile (or instance role)
-  if ! aws sts get-caller-identity "${AWS_PROFILE_FLAG[@]}" >/dev/null 2>&1; then
-    if [[ "${OPEN_IMAGES_NO_PROFILE:-}" == "1" ]]; then
-      log_error "AWS credentials not available via instance role"
-    else
-      log_error "AWS credentials not configured for profile '$AWS_PROFILE'"
-      log_error "Run: aws configure --profile $AWS_PROFILE"
-    fi
+  # Verify AWS credentials work
+  if ! aws sts get-caller-identity >/dev/null 2>&1; then
+    log_error "AWS credentials not configured"
+    log_error "Run: assume <profile-name> or export AWS_PROFILE=<name>"
     return 1
   fi
 
-  if [[ "${OPEN_IMAGES_NO_PROFILE:-}" == "1" ]]; then
-    log_info "All prerequisites satisfied (curl, aws, jq, unzip, EC2 instance role)"
-  else
-    log_info "All prerequisites satisfied (curl, aws, jq, unzip, AWS profile '$AWS_PROFILE')"
-  fi
+  log_info "All prerequisites satisfied (curl, aws, jq, unzip)"
 }
 
 # -----------------------------------------------------------------------------

@@ -1,14 +1,12 @@
 # Open Images V7 Dataset Pipeline
-# Usage: just <recipe> [args]
+# Usage: assume <profile> && just <recipe> [args]
 #
-# Requires: aws CLI, jq, just
-# AWS Profile: ze-kasher-dev (override with AWS_PROFILE=...)
+# Requires: aws CLI (with credentials via assume/AWS_PROFILE/env), jq, just
 
 set dotenv-load := false
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 scripts_dir := justfile_directory() / "scripts"
-profile := env("AWS_PROFILE", "ze-kasher-dev")
 stack := "OpenImagesStack"
 
 # ─── Discovery ────────────────────────────────────────────────────────────────
@@ -21,7 +19,7 @@ default:
 
 # Deploy CDK stack (includes open_images_full database + EC2 instance profile)
 deploy:
-    cd {{justfile_directory()}}/infra && npx cdk deploy --profile {{profile}}
+    cd {{justfile_directory()}}/infra && npx cdk deploy
 
 # ─── Existing pipeline (validation split only) ────────────────────────────────
 
@@ -68,14 +66,14 @@ dry-run-tables-full:
 # Check EC2 instance state
 instance-status instance_id:
     @aws ec2 describe-instances \
-      --instance-ids {{instance_id}} --profile {{profile}} \
+      --instance-ids {{instance_id}} \
       --query 'Reservations[0].Instances[0].{State:State.Name,Launch:LaunchTime,Type:InstanceType}' \
       --output table
 
 # View pipeline logs from EC2 console output (may take minutes after termination)
 console-output instance_id:
     @aws ec2 get-console-output \
-      --instance-id {{instance_id}} --profile {{profile}} \
+      --instance-id {{instance_id}} \
       --query 'Output' --output text 2>/dev/null \
       | tr '\r' '\n' | grep -E '\[(INFO|WARN|ERROR)\]' \
       || echo "(no script output yet — console may take a few minutes to populate)"
@@ -83,12 +81,12 @@ console-output instance_id:
 # View full raw EC2 console output
 console-output-raw instance_id:
     @aws ec2 get-console-output \
-      --instance-id {{instance_id}} --profile {{profile}} \
+      --instance-id {{instance_id}} \
       --query 'Output' --output text
 
 # List open-images EC2 instances (running and recently terminated)
 list-instances:
-    @aws ec2 describe-instances --profile {{profile}} \
+    @aws ec2 describe-instances \
       --filters "Name=tag:project,Values=open-images" \
       --query 'Reservations[*].Instances[*].{Id:InstanceId,Name:Tags[?Key==`Name`].Value|[0],State:State.Name,Launch:LaunchTime}' \
       --output table

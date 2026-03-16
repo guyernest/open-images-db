@@ -38,13 +38,10 @@ if [[ "$BUCKET" == __*__ ]]; then
 fi
 
 # Use instance role credentials (no named AWS profile on EC2)
-# OPEN_IMAGES_NO_PROFILE=1 tells common.sh to use an empty AWS_PROFILE_FLAG array.
 # AWS_PROFILE must be unset (not empty) — AWS CLI treats "" as a named profile lookup.
 unset AWS_PROFILE
-export OPEN_IMAGES_NO_PROFILE=1
 
 echo "[INFO]  $(date -u +%H:%M:%S) Bucket: $BUCKET" | tee -a "$LOG_FILE"
-echo "[INFO]  $(date -u +%H:%M:%S) Mode: EC2 instance role (OPEN_IMAGES_NO_PROFILE=1)" | tee -a "$LOG_FILE"
 
 # -----------------------------------------------------------------------------
 # Step 1: Install dependencies and expand root partition
@@ -86,7 +83,7 @@ echo "[INFO]  $(date -u +%H:%M:%S) Scripts downloaded to /opt/open-images/script
 
 # -----------------------------------------------------------------------------
 # Step 3: Source common.sh and download-annotations-full.sh
-# common.sh must be sourced with OPEN_IMAGES_NO_PROFILE=1 already exported.
+# common.sh uses environment credentials (instance role on EC2).
 # The library provides log_info, download_url_set, download_annotations_full.
 # -----------------------------------------------------------------------------
 
