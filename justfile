@@ -61,6 +61,78 @@ create-views-full *args="":
 dry-run-tables-full:
     bash {{scripts_dir}}/create-tables-full.sh --dry-run
 
+# ─── Validation ──────────────────────────────────────────────────────────────
+
+# Verify full dataset table row counts
+verify-tables-full:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    export ATHENA_DATABASE="open_images_full"
+    source {{scripts_dir}}/lib/common.sh
+    source {{scripts_dir}}/lib/athena.sh
+
+    log_info "Verifying open_images_full table row counts..."
+
+    images=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.images" "count images")
+    class_desc=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.class_descriptions" "count class_descriptions")
+    labels=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.labels" "count labels")
+    boxes=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.bounding_boxes" "count bounding_boxes")
+    masks=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.masks" "count masks")
+    rels=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.relationships" "count relationships")
+    hierarchy=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.label_hierarchy" "count label_hierarchy")
+
+    echo ""
+    echo "┌─────────────────────┬──────────────┬──────────────┐"
+    echo "│ Table               │ Actual       │ Expected     │"
+    echo "├─────────────────────┼──────────────┼──────────────┤"
+    printf "│ images              │ %12s │     ~1910000 │\n" "$images"
+    printf "│ class_descriptions  │ %12s │        ~600  │\n" "$class_desc"
+    printf "│ labels              │ %12s │   ~50000000  │\n" "$labels"
+    printf "│ bounding_boxes      │ %12s │   ~15000000  │\n" "$boxes"
+    printf "│ masks               │ %12s │    ~2800000  │\n" "$masks"
+    printf "│ relationships       │ %12s │     ~370000  │\n" "$rels"
+    printf "│ label_hierarchy     │ %12s │        ~600  │\n" "$hierarchy"
+    echo "└─────────────────────┴──────────────┴──────────────┘"
+
+    errors=0
+    [[ "$images" -ge 1000000 ]] || { echo "FAIL: images < 1M"; errors=$((errors+1)); }
+    [[ "$class_desc" -ge 500 ]] || { echo "FAIL: class_descriptions < 500"; errors=$((errors+1)); }
+    [[ "$labels" -ge 1000000 ]] || { echo "FAIL: labels < 1M"; errors=$((errors+1)); }
+    [[ "$boxes" -ge 1000000 ]] || { echo "FAIL: bounding_boxes < 1M"; errors=$((errors+1)); }
+    [[ "$hierarchy" -ge 100 ]] || { echo "FAIL: label_hierarchy < 100"; errors=$((errors+1)); }
+
+    echo ""
+    if [[ $errors -eq 0 ]]; then
+      log_info "All table counts within expected range"
+    else
+      log_error "$errors table(s) have unexpected row counts"
+      exit 1
+    fi
+
+# Verify a sample cvdf_url resolves (quick HTTP check)
+verify-cvdf-url:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    export ATHENA_DATABASE="open_images_full"
+    source {{scripts_dir}}/lib/common.sh
+    source {{scripts_dir}}/lib/athena.sh
+
+    log_info "Checking a sample cvdf_url..."
+    url=$(athena_query_scalar \
+      "SELECT cvdf_url FROM ${ATHENA_DATABASE}.images LIMIT 1" \
+      "sample cvdf_url")
+    echo "URL: $url"
+
+    status=$(curl -sI "$url" | head -1)
+    echo "HTTP: $status"
+
+    if echo "$status" | grep -q "200"; then
+      log_info "cvdf_url resolves correctly"
+    else
+      log_error "cvdf_url returned unexpected status"
+      exit 1
+    fi
+
 # ─── EC2 Monitoring ───────────────────────────────────────────────────────────
 
 # Check EC2 instance state
