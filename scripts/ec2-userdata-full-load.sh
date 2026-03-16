@@ -52,7 +52,9 @@ echo "[INFO]  $(date -u +%H:%M:%S) ============================================"
 echo "[INFO]  $(date -u +%H:%M:%S) Step 1: Installing dependencies..." | tee -a "$LOG_FILE"
 echo "[INFO]  $(date -u +%H:%M:%S) ============================================" | tee -a "$LOG_FILE"
 
-dnf install -y jq curl wget 2>&1 | tee -a "$LOG_FILE"
+# curl-minimal is pre-installed on AL2023; installing full curl conflicts.
+# jq and wget are the only packages needed.
+dnf install -y jq wget 2>&1 | tee -a "$LOG_FILE"
 
 # Expand root partition to use full EBS volume
 growpart /dev/xvda 1 2>/dev/null || true
