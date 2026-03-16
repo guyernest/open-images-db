@@ -76,6 +76,7 @@ verify-tables-full:
     images=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.images" "count images")
     class_desc=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.class_descriptions" "count class_descriptions")
     labels=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.labels" "count labels")
+    labels_top5=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.labels_top5" "count labels_top5")
     boxes=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.bounding_boxes" "count bounding_boxes")
     masks=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.masks" "count masks")
     rels=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.relationships" "count relationships")
@@ -87,7 +88,8 @@ verify-tables-full:
     echo "├─────────────────────┼──────────────┼──────────────┤"
     printf "│ images              │ %12s │     ~1910000 │\n" "$images"
     printf "│ class_descriptions  │ %12s │        ~600  │\n" "$class_desc"
-    printf "│ labels              │ %12s │   ~50000000  │\n" "$labels"
+    printf "│ labels              │ %12s │  ~229000000  │\n" "$labels"
+    printf "│ labels_top5         │ %12s │   ~45000000  │\n" "$labels_top5"
     printf "│ bounding_boxes      │ %12s │   ~15000000  │\n" "$boxes"
     printf "│ masks               │ %12s │    ~2800000  │\n" "$masks"
     printf "│ relationships       │ %12s │     ~370000  │\n" "$rels"
@@ -97,7 +99,8 @@ verify-tables-full:
     errors=0
     [[ "$images" -ge 1000000 ]] || { echo "FAIL: images < 1M"; errors=$((errors+1)); }
     [[ "$class_desc" -ge 500 ]] || { echo "FAIL: class_descriptions < 500"; errors=$((errors+1)); }
-    [[ "$labels" -ge 1000000 ]] || { echo "FAIL: labels < 1M"; errors=$((errors+1)); }
+    [[ "$labels" -ge 100000000 ]] || { echo "FAIL: labels < 100M"; errors=$((errors+1)); }
+    [[ "$labels_top5" -ge 10000000 ]] || { echo "FAIL: labels_top5 < 10M"; errors=$((errors+1)); }
     [[ "$boxes" -ge 1000000 ]] || { echo "FAIL: bounding_boxes < 1M"; errors=$((errors+1)); }
     [[ "$hierarchy" -ge 100 ]] || { echo "FAIL: label_hierarchy < 100"; errors=$((errors+1)); }
 
