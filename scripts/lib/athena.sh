@@ -10,7 +10,7 @@ fi
 
 # Athena configuration (single source of truth)
 readonly ATHENA_WORKGROUP="open-images"
-readonly ATHENA_DATABASE="open_images"
+readonly ATHENA_DATABASE="${ATHENA_DATABASE:-open_images}"
 readonly ATHENA_CATALOG="AwsDataCatalog"
 
 # -----------------------------------------------------------------------------
@@ -31,7 +31,7 @@ athena_execute_and_wait() {
     --query-string "$sql" \
     --work-group "$ATHENA_WORKGROUP" \
     --query-execution-context "Database=${ATHENA_DATABASE},Catalog=${ATHENA_CATALOG}" \
-    --profile "$AWS_PROFILE" \
+    "${AWS_PROFILE_FLAG[@]}" \
     --output text \
     --query 'QueryExecutionId') || {
     log_error "Failed to start query: $description"
@@ -48,7 +48,7 @@ athena_execute_and_wait() {
     sleep 2
     poll_json=$(aws athena get-query-execution \
       --query-execution-id "$query_id" \
-      --profile "$AWS_PROFILE" \
+      "${AWS_PROFILE_FLAG[@]}" \
       --output json) || {
       log_error "Failed to check query status: $query_id"
       return 1
@@ -103,7 +103,7 @@ athena_query_scalar() {
   local result
   result=$(aws athena get-query-results \
     --query-execution-id "$ATHENA_LAST_QUERY_ID" \
-    --profile "$AWS_PROFILE" \
+    "${AWS_PROFILE_FLAG[@]}" \
     --output text \
     --query 'ResultSet.Rows[1].Data[0].VarCharValue') || {
     log_error "Failed to get query results: $description"

@@ -5,8 +5,15 @@ set -euo pipefail
 # common.sh -- Shared functions for Open Images data acquisition pipeline
 # =============================================================================
 
-# AWS profile used for all AWS CLI calls
-readonly AWS_PROFILE="${AWS_PROFILE:-ze-kasher-dev}"
+# AWS profile / credential mode for all AWS CLI calls
+# Set OPEN_IMAGES_NO_PROFILE=1 on EC2 to use instance role credentials (no named profile)
+if [[ "${OPEN_IMAGES_NO_PROFILE:-}" == "1" ]]; then
+  readonly AWS_PROFILE=""
+  AWS_PROFILE_FLAG=()
+else
+  readonly AWS_PROFILE="${AWS_PROFILE:-ze-kasher-dev}"
+  AWS_PROFILE_FLAG=(--profile "$AWS_PROFILE")
+fi
 
 # Default temp directory (configurable via environment variable)
 TEMP_DIR="${OPEN_IMAGES_TEMP:-$HOME/open-images-tmp}"
@@ -48,14 +55,22 @@ check_prerequisites() {
     return 1
   fi
 
-  # Verify AWS credentials work with the expected profile
-  if ! aws sts get-caller-identity --profile "$AWS_PROFILE" >/dev/null 2>&1; then
-    log_error "AWS credentials not configured for profile '$AWS_PROFILE'"
-    log_error "Run: aws configure --profile $AWS_PROFILE"
+  # Verify AWS credentials work with the expected profile (or instance role)
+  if ! aws sts get-caller-identity "${AWS_PROFILE_FLAG[@]}" >/dev/null 2>&1; then
+    if [[ "${OPEN_IMAGES_NO_PROFILE:-}" == "1" ]]; then
+      log_error "AWS credentials not available via instance role"
+    else
+      log_error "AWS credentials not configured for profile '$AWS_PROFILE'"
+      log_error "Run: aws configure --profile $AWS_PROFILE"
+    fi
     return 1
   fi
 
-  log_info "All prerequisites satisfied (curl, aws, jq, unzip, AWS profile '$AWS_PROFILE')"
+  if [[ "${OPEN_IMAGES_NO_PROFILE:-}" == "1" ]]; then
+    log_info "All prerequisites satisfied (curl, aws, jq, unzip, EC2 instance role)"
+  else
+    log_info "All prerequisites satisfied (curl, aws, jq, unzip, AWS profile '$AWS_PROFILE')"
+  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -79,7 +94,7 @@ discover_bucket() {
     --stack-name "$CF_STACK_NAME" \
     --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' \
     --output text \
-    --profile "$AWS_PROFILE" 2>/dev/null) || true
+    "${AWS_PROFILE_FLAG[@]}" 2>/dev/null) || true
 
   if [[ -z "$bucket" || "$bucket" == "None" ]]; then
     log_error "Could not discover bucket from stack '$CF_STACK_NAME'"
@@ -144,7 +159,7 @@ upload_to_s3() {
   log_info "Uploading $local_dir -> $s3_prefix"
   for attempt in $(seq 1 $max_attempts); do
     if AWS_MAX_ATTEMPTS=10 aws s3 sync "$local_dir" "$s3_prefix" \
-      --profile "$AWS_PROFILE" \
+      "${AWS_PROFILE_FLAG[@]}" \
       --cli-read-timeout 120 \
       --cli-connect-timeout 30; then
       log_info "Upload complete: $s3_prefix"
