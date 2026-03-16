@@ -29,7 +29,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Source all library files
 source "$SCRIPT_DIR/lib/common.sh"
 source "$SCRIPT_DIR/lib/athena.sh"
-source "$SCRIPT_DIR/lib/reorganize-raw.sh"
+source "${REORG_SCRIPT:-$SCRIPT_DIR/lib/reorganize-raw.sh}"
 source "$SCRIPT_DIR/lib/flatten-hierarchy.sh"
 
 # -----------------------------------------------------------------------------

@@ -17,8 +17,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Override database before anything sources athena.sh
+# Override database and reorganization script before delegation
 export ATHENA_DATABASE="open_images_full"
+export REORG_SCRIPT="$SCRIPT_DIR/lib/reorganize-raw-full.sh"
 
 # Patch SQL files: copy to temp dir with warehouse/ -> warehouse-full/ substitution
 # Uses LOCATION-anchored sed to avoid false positives in comments
