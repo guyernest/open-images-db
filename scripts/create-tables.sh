@@ -110,7 +110,7 @@ main() {
   fi
 
   # Step 5: Find and execute SQL files in order
-  local sql_dir="$SCRIPT_DIR/../queries/tables"
+  local sql_dir="${SQL_DIR_OVERRIDE:-$SCRIPT_DIR/../queries/tables}"
   if [[ ! -d "$sql_dir" ]]; then
     log_error "SQL directory not found: $sql_dir"
     log_error "Create queries/tables/ with SQL files first"
