@@ -51,5 +51,6 @@ SELECT
   CASE WHEN original_size = '' THEN NULL ELSE CAST(original_size AS INT) END AS original_size,
   original_md5,
   thumbnail_300k_url,
-  CASE WHEN rotation = '' THEN NULL ELSE CAST(rotation AS DOUBLE) END AS rotation
+  CASE WHEN rotation = '' THEN NULL ELSE CAST(rotation AS DOUBLE) END AS rotation,
+  'https://open-images-dataset.s3.amazonaws.com/' || subset || '/' || image_id || '.jpg' AS cvdf_url
 FROM __DATABASE__.raw_images;

@@ -116,52 +116,20 @@ download_annotations_full "$OPEN_IMAGES_TEMP" "$BUCKET"
 
 log_info "Annotation download complete"
 
-# -----------------------------------------------------------------------------
-# Step 5: S3-to-S3 image sync for all three splits
-# Order: smallest first (validation, test, train) so early splits are available
-# for Athena table creation if needed before train completes.
-# --no-sign-request: bypasses IAM credential check for the public CVDF bucket
-# --only-show-errors: reduces log verbosity for 1.7M file operations
-# NOTE: Never combine --no-sign-request with --profile (Pitfall 2)
-# -----------------------------------------------------------------------------
-
-log_info "============================================"
-log_info "Step 5: S3-to-S3 image sync (561 GB, ~1.9M files)"
-log_info "============================================"
-log_info "Source: s3://open-images-dataset/ (CVDF public bucket)"
-log_info "Destination: s3://$BUCKET/images/"
-log_info "Note: --no-sign-request used for source; instance role for destination writes"
-
-log_info "Syncing validation split (12 GB, ~41K files)..."
-aws s3 --no-sign-request sync \
-  s3://open-images-dataset/validation/ \
-  "s3://$BUCKET/images/validation/" \
-  --only-show-errors 2>&1 | tee -a "$LOG_FILE"
-log_info "Validation split sync complete"
-
-log_info "Syncing test split (36 GB, ~125K files)..."
-aws s3 --no-sign-request sync \
-  s3://open-images-dataset/test/ \
-  "s3://$BUCKET/images/test/" \
-  --only-show-errors 2>&1 | tee -a "$LOG_FILE"
-log_info "Test split sync complete"
-
-log_info "Syncing train split (513 GB, ~1.7M files, ~3.5-4 hours)..."
-aws s3 --no-sign-request sync \
-  s3://open-images-dataset/train/ \
-  "s3://$BUCKET/images/train/" \
-  --only-show-errors 2>&1 | tee -a "$LOG_FILE"
-log_info "Train split sync complete"
+# NOTE: Image sync SKIPPED — images are served directly from the CVDF public
+# bucket (https://open-images-dataset.s3.amazonaws.com/{split}/{id}.jpg).
+# The images table generates cvdf_url as a derived column, eliminating the
+# need to copy 561 GB / 1.9M files to our S3. Saves ~$10 one-time + $13/month.
 
 # -----------------------------------------------------------------------------
-# Step 6: Log completion
+# Step 5: Log completion
 # EXIT trap fires after this, calling shutdown -h now
 # -----------------------------------------------------------------------------
 
 log_info "============================================"
 log_info "Full dataset load pipeline complete"
-log_info "Images synced: validation + test + train (1.9M files, 561 GB)"
 log_info "Annotations uploaded to s3://$BUCKET/raw/"
+log_info "Images served from CVDF public bucket (no copy needed)"
 log_info "Next steps (run locally):"
 log_info "  just create-tables-full"
 log_info "  just create-views-full"

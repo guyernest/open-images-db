@@ -14,6 +14,7 @@ SELECT
   i.title,
   i.original_size,
   i.thumbnail_300k_url,
+  i.cvdf_url,
   i.rotation,
   l.source,
   l.label_name,
