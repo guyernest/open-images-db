@@ -104,6 +104,21 @@ verify-tables-full:
     [[ "$boxes" -ge 1000000 ]] || { echo "FAIL: bounding_boxes < 1M"; errors=$((errors+1)); }
     [[ "$hierarchy" -ge 100 ]] || { echo "FAIL: label_hierarchy < 100"; errors=$((errors+1)); }
 
+    # Materialized aggregation tables (Tier 1)
+    eic_mat=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.entity_image_counts_mat" "count entity_image_counts_mat" 2>/dev/null) || eic_mat="N/A"
+    rs_mat=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.relationship_summary_mat" "count relationship_summary_mat" 2>/dev/null) || rs_mat="N/A"
+    cooc=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.label_cooccurrence_top10" "count label_cooccurrence_top10" 2>/dev/null) || cooc="N/A"
+    chr_mat=$(athena_query_scalar "SELECT COUNT(*) FROM ${ATHENA_DATABASE}.class_hierarchy_resolved_mat" "count class_hierarchy_resolved_mat" 2>/dev/null) || chr_mat="N/A"
+
+    if [[ "$eic_mat" != "N/A" ]]; then
+      echo ""
+      echo "Materialized tables (Tier 1):"
+      printf "  entity_image_counts_mat:       %s\n" "$eic_mat"
+      printf "  relationship_summary_mat:      %s\n" "$rs_mat"
+      printf "  label_cooccurrence_top10:      %s\n" "$cooc"
+      printf "  class_hierarchy_resolved_mat:  %s\n" "$chr_mat"
+    fi
+
     echo ""
     if [[ $errors -eq 0 ]]; then
       log_info "All table counts within expected range"

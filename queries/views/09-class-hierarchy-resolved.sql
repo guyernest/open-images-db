@@ -1,17 +1,8 @@
 -- 09-class-hierarchy-resolved.sql
 -- View: class_hierarchy_resolved
--- Pre-joined hierarchy edges with display names (~600 rows)
--- Eliminates repeated label_hierarchy + class_descriptions double-join
--- in find_images, explore_category, resolve_labels, and get_image_details
+-- Reads from materialized table class_hierarchy_resolved_mat (847 rows)
+-- Run create-tables to rebuild the materialized table if source data changes
 
 CREATE OR REPLACE VIEW __DATABASE__.class_hierarchy_resolved AS
-SELECT
-  p.display_name AS parent_name,
-  p.label_name   AS parent_id,
-  c.display_name AS child_name,
-  c.label_name   AS child_id
-FROM __DATABASE__.label_hierarchy lh
-JOIN __DATABASE__.class_descriptions p
-  ON lh.parent_mid = p.label_name
-JOIN __DATABASE__.class_descriptions c
-  ON lh.child_mid = c.label_name;
+SELECT parent_name, parent_id, child_name, child_id
+FROM __DATABASE__.class_hierarchy_resolved_mat;
