@@ -23,10 +23,11 @@ The pipeline downloads the Open Images V7 validation set (~42,000 images), loads
 | jq | any | `brew install jq` |
 | curl | any | Pre-installed on macOS/Linux |
 
-Configure your AWS profile:
+Configure AWS credentials using your preferred method:
 
 ```bash
-aws configure --profile ze-kasher-dev
+assume <profile-name>
+# or: export AWS_PROFILE=<profile-name>
 ```
 
 ## Setup
@@ -34,10 +35,10 @@ aws configure --profile ze-kasher-dev
 ### 1. Deploy infrastructure
 
 ```bash
-cd infra && npm install && npx cdk deploy --profile ze-kasher-dev && cd ..
+just deploy
 ```
 
-This creates the S3 bucket, Athena workgroup (`open-images`), Glue database (`open_images`), and IAM policy.
+This creates the S3 bucket, Athena workgroup (`open-images`), Glue databases (`open_images` + `open_images_full`), EC2 instance profile, and IAM policy.
 
 ### 2. Download data
 
