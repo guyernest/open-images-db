@@ -12,6 +12,7 @@ SELECT
   i.author,
   i.original_size,
   i.thumbnail_300k_url,
+  i.cvdf_url,
   r.label_name_1,
   cd1.display_name AS display_name_1,
   r.label_name_2,

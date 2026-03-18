@@ -13,6 +13,7 @@ SELECT
   i.author,
   i.original_size,
   i.thumbnail_300k_url,
+  i.cvdf_url,
   bb.source,
   bb.label_name,
   cd.display_name,
